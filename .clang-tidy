@@ -1,0 +1,40 @@
+---
+Checks:          '-*,bugprone-*, cppcoreguidelines-*, hicpp-*,misc-*,  modernize-*, performance-*,readability-*, -cppcoreguidelines-pro-type-vararg,-misc-unused-parameters,-readability-function-size,-readability-redundant-string-init, -readability-else-after-return,-readability-braces-around-statements, -cert-err58-cpp, -hicpp-vararg,-hicpp-no-array-decay,-hicpp-braces-around-statements,-cppcoreguidelines-pro-bounds-array-to-pointer-decay, -cppcoreguidelines-pro-bounds-pointer-arithmetic,-cppcoreguidelines-pro-type-cstyle-cast,-cppcoreguidelines-pro-type-member-init, -cppcoreguidelines-pro-type-cstyle-cast,-cppcoreguidelines-pro-bounds-constant-array-index,-hicpp-no-assembler,-readability-simplify-boolean-expr,-hicpp-member-init,-readability-redundant-member-init, cppcoreguidelines-no-malloc,-cppcoreguidelines-no-malloc,-modernize-pass-by-value,-readability-named-parameter,-readability-inconsistent-declaration-parameter-name'
+FormatStyle:     .clang-format
+WarningsAsErrors: ''
+AnalyzeTemporaryDtors: false
+CheckOptions:
+  - key:             readability-identifier-naming.NamespaceCase 
+    value:           lower_case
+  - key:             readability-identifier-naming.ClassCase 
+    value:           CamelCase
+  - key:             readability-identifier-naming.EnumCase  
+    value:           CamelCase
+  - key:             readability-identifier-naming.EnumConstantCase  
+    value:           CamelCase
+  - key:             readability-identifier-naming.TemplateParameterCase  
+    value:           UPPER_CASE
+  - key:             readability-identifier-naming.TemplateParameterCase  
+    value:           UPPER_CASE
+  - key:             readability-identifier-naming.MethodCase   
+    value:           CamelCase
+  - key:             readability-identifier-naming.ProtectedMethodCase   
+    value:           camelBack
+  - key:             readability-identifier-naming.PrivateMethodCase     
+    value:           camelBack
+  - key:             hicpp-use-emplace.ContainersWithPushBack
+    value:           '::std::vector;::std::list;::std::deque'
+  - key:             hicpp-use-emplace.SmartPointers
+    value:           '::std::shared_ptr;::std::unique_ptr;::std::auto_ptr;::std::weak_ptr'
+  - key:             hicpp-use-emplace.TupleMakeFunctions
+    value:           '::std::make_pair;::std::make_tuple'
+  - key:             hicpp-use-emplace.TupleTypes
+    value:           '::std::pair;::std::tuple'
+  - key:             modernize-use-emplace.ContainersWithPushBack
+    value:           '::std::vector;::std::list;::std::deque'
+  - key:             modernize-use-emplace.SmartPointers
+    value:           '::std::shared_ptr;::std::unique_ptr;::std::auto_ptr;::std::weak_ptr'
+  - key:             modernize-use-emplace.TupleMakeFunctions
+    value:           '::std::make_pair;::std::make_tuple'
+  - key:             modernize-use-emplace.TupleTypes
+    value:           '::std::pair;::std::tuple'
