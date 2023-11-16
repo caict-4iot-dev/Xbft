@@ -1,0 +1,103 @@
+syntax = "proto3";
+package protocol;
+
+message XbftNode {
+    bytes parent_node_hash = 1; //父节点hash
+    bytes node_value = 2;    //该节点包含的区块数据（即consensus value）
+    
+    int64 view_number = 3; //当前视图的view_number
+    int64 sequence = 4;  //当前的共识实例的高度，一般等于区块高度
+    XbftQc previous_qc = 5; //上一共识的QC集合，由leader通知给replica用
+} 
+
+
+message XbftQcValue {           //QC证书value
+    bytes node_value_hash = 1;  // The node consensus value hash, which will be use for block proof
+    bytes node_hash = 2;        // The node hash, which will be used for linking the node
+    int64 view_number = 3;     
+    int64 sequence = 4;          
+}
+
+message XbftQc {//QC证书，在共识中一个比较重要的概念，对应星火BFT算法中的proof证据概念
+    XbftQcValue qc_content = 1;  // { parent_node_hash, node_value_hash, view_number, sequence, previous_qc}
+    repeated Signature signatures = 2;
+}
+
+enum XbftMessageType {
+    XBFT_TYPE_PROPOSE = 0;
+    XBFT_TYPE_VOTE = 1;
+    XBFT_TYPE_DECIDE = 2;
+    XBFT_TYPE_NEWVIEW = 3;
+}
+
+message XbftPropose {          //该消息只由leader节点发出
+    int64 replica_id = 1;       //区块链节点的id 
+    XbftNode node = 2;         //hotstuff的树节点
+}
+
+message XbftVote {
+    int64 replica_id = 1;    //区块链节点的id 
+    XbftQcValue qc_content = 2;
+    Signature signature = 3;   //对Proposal消息的签名 // { parent_node_hash, node_value_hash, view_number, sequence, previous_qc}
+}
+
+message XbftDecide {
+    int64 replica_id = 1;
+    XbftQc qc = 2;
+}
+
+message XbftTcValue {
+    int64 view_number = 1;
+    XbftQc high_qc = 2;    //high qc
+}
+
+message XbftTc {
+    int64 view_number = 1;
+    repeated int64 high_qc_view_number = 2;   //high_qc的view_number列表?or sequence?
+    repeated Signature signature = 3;   //对应的view_number 和 high_qc_view_number的签名
+}
+
+message XbftNewView {
+    int64 replica_id = 1;    //区块链节点的id 
+    XbftTc last_tc = 2; //最后的TC证书
+    XbftTcValue tc_content = 3;
+    Signature signature = 4; //对tc_content.view_number和tc_content.high_qc.view_number进行签名。最后由节点自行组装成XbftTc
+}
+
+message Xbft {
+    int64 round_number = 1; //暂时保留
+    XbftMessageType  type = 2;
+    oneof XbftMsg {
+        XbftPropose propose = 3;
+        XbftVote vote = 4;
+        XbftDecide decide = 5;
+        XbftNewView new_view = 6;
+    }
+}
+
+message XbftEnv {
+    Xbft xbft = 1;
+    Signature signature = 2;
+}
+
+message Validator{
+	string address = 1;
+	int64 pledge_coin_amount = 2;
+}
+
+message ValidatorSet{
+	repeated Validator validators = 1;
+}
+
+message XbftProof {
+    XbftNode node = 1;  //attention, node.node_value == ""
+    XbftQc qc = 2;
+}
+
+message Signature {
+	string public_key = 1;
+    oneof data{
+        bytes sign_data = 2;
+        string sign_data_str = 3;
+    }
+}
