@@ -12,8 +12,8 @@ aux_source_directory(${UNITTEST_SRC_DIR}/crypto UNITTEST_CRYPTO_SRC)
 aux_source_directory(${UNITTEST_SRC_DIR}/engine UNITTEST_ENGINE_SRC)
 
 # Generate executable files
-add_executable(${APP_UNITTEST} ${UNITTEST_UTILS_SRC} ${UNITTEST_CRYPTO_SRC} ${UNITTEST_ENGINE_SRC})
+add_executable(${APP_UNITTEST} ${UNITTEST_UTILS_SRC} ${UNITTEST_CRYPTO_SRC} ${UNITTEST_ENGINE_SRC} ${APP_UNITTEST_SRC})
 
-target_link_libraries(${APP_UNITTEST} ${INNER_LIBS} ${XBFT_DEPENDS_LIBS})
+target_link_libraries(${APP_UNITTEST} ${INNER_LIBS} ${XBFT_DEPENDS_LIBS} ${XBFT_DEPEND_LIB})
 
-disable_clang_tidy(${APP_UNITTEST})
+#disable_clang_tidy(${APP_UNITTEST})

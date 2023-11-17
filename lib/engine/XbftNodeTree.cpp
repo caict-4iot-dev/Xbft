@@ -85,7 +85,7 @@ bool XbftNodeTree::AppendNode(const XbftNodePointer &cp_node) {
         }
         // LOG_INFO("Add node, hash(%s), parent hash(%s)", utils::String::Bin4ToHexString(node->GetHash()).c_str(),
         //    utils::String::Bin4ToHexString(node->GetParentHash()).c_str());
-        m_nodes[node->GetHash()] = cp_node;
+        m_nodes[cp_node->GetHash()] = cp_node;
         for (auto iterDel = m_leafNodes.begin(); iterDel != m_leafNodes.end(); iterDel++) {
             if ((*iterDel)->GetHash() == cp_node->GetParentHash()) {
                 m_leafNodes.erase(iterDel);

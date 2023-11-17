@@ -22,6 +22,7 @@
 
 #include "XbftConsensus.h"
 #include "Logger.h"
+#include "Sha256.h"
 #include "Strings.h"
 #include "Timestamp.h"
 
@@ -48,7 +49,7 @@ bool XbftConsensus::Initialize(std::shared_ptr<KeyInterface> p_keyInfo,
 
         protocol::ValidatorSet validators;
         for (auto address : cr_validatorsVec) {
-            m_validatorSet.add_validators()->set_address(address);
+            validators.add_validators()->set_address(address);
         }
         // must update validator firstly
         UpdateValidators(validators);
@@ -67,13 +68,13 @@ void XbftConsensus::UpdateValidators(const protocol::ValidatorSet &cr_validatorS
 
 bool XbftConsensus::UpdateValidatorsAndProof(
     const protocol::ValidatorSet &cr_validatorSet, const std::string &cr_lastProof) {
-    if (!UpdateProof(proof)) {
+    if (!UpdateProof(cr_lastProof)) {
         LOG_ERROR("Failed to update proof");
         return false;
     }
 
-    if (m_validators.Compare(validators)) {
-        UpdateValidators(validators);
+    if (m_validators.Compare(cr_validatorSet)) {
+        UpdateValidators(cr_validatorSet);
 
         if (m_validators.Size() < 4) {
             LOG_WARN("Xbft couldn't tolerate fault node when validator size =%ld", m_validators.Size());
@@ -241,11 +242,11 @@ bool XbftConsensus::Propose(std::shared_ptr<ConsData> p_consData) {
 
     // Append the node
     if (!m_nodeTree.AppendNode(p_node)) {
-        LOG_ERROR("Failed to append new node to tree(view:%ld, seq:%ld)", m_viewNumber, p_cons->GetSeq());
+        LOG_ERROR("Failed to append new node to tree(view:%ld, seq:%ld)", m_viewNumber, p_consData->GetSeq());
         return false;
     }
     XbftMsgPointer env = newPropose(p_node);
-    mp_net->SendMsg(mp_replicaKey->GetAddress(), GetOtherReplicaAddrs(), env);
+    mp_net->SendMsg(mp_replicaKey->GetAddress(), GetOtherReplicaAddrs(), env->GetXbftEnv().SerializeAsString());
     p_node->SetLastProposeTime(utils::Timestamp::HighResolution(), 0);
 
     return true;
@@ -254,7 +255,7 @@ bool XbftConsensus::Propose(std::shared_ptr<ConsData> p_consData) {
 bool XbftConsensus::SendPropseAgain(const XbftNodePointer &p_node) {
     int64_t currentRound = p_node->GetProposeRound() + 1;
     XbftMsgPointer env = newPropose(p_node, currentRound);
-    mp_net->SendMsg(mp_replicaKey->GetAddress(), GetOtherReplicaAddrs(), env);
+    mp_net->SendMsg(mp_replicaKey->GetAddress(), GetOtherReplicaAddrs(), env->GetXbftEnv().SerializeAsString());
     p_node->SetLastProposeTime(utils::Timestamp::HighResolution(), currentRound);
     return true;
 }
@@ -270,7 +271,7 @@ XbftMsgPointer XbftConsensus::newPropose(const XbftNodePointer &p_node, int64_t 
     p_env->mutable_signature()->set_public_key(mp_replicaKey->GetPublicKey());
     p_env->mutable_signature()->set_sign_data(mp_replicaKey->Sign(p_xbft->SerializeAsString()));
 
-    XbftMsgPointer att = std::make_shared<XbftMsg>(*p_env);
+    XbftMsgPointer att = std::make_shared<XbftMsg>(*p_env, mp_keyTool);
     return att;
 }
 
@@ -285,7 +286,7 @@ XbftMsgPointer XbftConsensus::newDecide(const XbftNodePointer &p_node, int64_t r
     p_env->mutable_signature()->set_public_key(mp_replicaKey->GetPublicKey());
     p_env->mutable_signature()->set_sign_data(mp_replicaKey->Sign(p_xbft->SerializeAsString()));
 
-    XbftMsgPointer att = std::make_shared<XbftMsg>(*p_env);
+    XbftMsgPointer att = std::make_shared<XbftMsg>(*p_env, mp_keyTool);
     return att;
 }
 
@@ -301,7 +302,7 @@ XbftMsgPointer XbftConsensus::newVote(
 
     std::string node_hash = crypto::Sha256::Crypto(propose.node().SerializeAsString());
     qcValue->set_node_hash(node_hash);
-    qcValue->set_node_value_hash(nodeValueHash);
+    qcValue->set_node_value_hash(cr_nodeValueHash);
     qcValue->set_view_number(propose.node().view_number());
     qcValue->set_sequence(propose.node().sequence());
 
@@ -310,7 +311,7 @@ XbftMsgPointer XbftConsensus::newVote(
 
     p_env->mutable_signature()->set_public_key(mp_replicaKey->GetPublicKey());
     p_env->mutable_signature()->set_sign_data(mp_replicaKey->Sign(p_xbft->SerializeAsString()));
-    return std::make_shared<XbftMsg>(*p_env);
+    return std::make_shared<XbftMsg>(*p_env, mp_keyTool);
 }
 
 bool XbftConsensus::OnRecv(const XbftMsgPointer &p_xbftMsg) {
@@ -403,7 +404,8 @@ bool XbftConsensus::onVote(const XbftMsgPointer &p_xbftMsg) {
 
             // Received enough vote messages, send decide mesage
             XbftMsgPointer p_env = newDecide(p_node, 0);
-            mp_net->SendMsg(mp_replicaKey->GetAddress(), GetOtherReplicaAddrs(), p_env);
+            mp_net->SendMsg(
+                mp_replicaKey->GetAddress(), GetOtherReplicaAddrs(), p_env->GetXbftEnv().SerializeAsString());
         }
 
         return true;
@@ -424,20 +426,11 @@ bool XbftConsensus::onPropose(const XbftMsgPointer &p_xbftMsg) {
             break;
         }
 
-        // Check the value's data format
-        if (!p_xbftMsg->GetValue()->IsValid()) {
-            LOG_ERROR("Consensus value is invalid");
-            break;
-        }
-
         // Check the value by ledger, 2:not valid
-        if (mp_valueDealing->CheckValue(mp_replicaKey->GetAddress(), p_xbftMsg->GetValue()) == 2) {
+        if (mp_valueDealing->CheckValue(p_xbftMsg->GetValue())) {
             LOG_ERROR("Failed to check xbft message(%s)", p_xbftMsg->GetDesc().c_str());
             break;
         }
-
-        // Update the status of value
-        p_xbftMsg->GetValue()->SetVerifiedResult(1);
 
         // Create a leaf node for PROPOSE mesaage
         XbftNodePointer p_node = std::make_shared<XbftNode>(p_xbftMsg->GetViewNumber(), p_xbftMsg->GetSeq(),
@@ -502,7 +495,7 @@ bool XbftConsensus::onPropose(const XbftMsgPointer &p_xbftMsg) {
                 newVote(p_xbftMsg->GetXbftEnv().xbft().propose(), p_xbftMsg->GetValue()->GetHash(), 0);
             std::vector<std::string> vec;
             vec.push_back(getLeaderAddr());
-            mp_net->SendMsg(mp_replicaKey->GetAddress(), vec, p_env);
+            mp_net->SendMsg(mp_replicaKey->GetAddress(), vec, p_env->GetXbftEnv().SerializeAsString());
         } else {
             LOG_WARN("Replica(%ld) received unproper message", m_replicaId);
         }

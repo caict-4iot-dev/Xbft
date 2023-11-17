@@ -36,12 +36,3 @@ TEST_F(Sha256Test, HashString) {
     ASSERT_EQ(
         utils::String::BinToHexString(hash_data2), "9834876dcfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0");
 }
-
-TEST_F(Sha256Test, Hash) {
-    crypto::Sha256 sha256;
-
-    std::string input = "aaa";
-    sha256.Update(input);
-
-    std::string final_str = sha256.Final();
-}

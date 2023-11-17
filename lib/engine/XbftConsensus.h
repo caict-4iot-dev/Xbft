@@ -33,7 +33,8 @@
 namespace xbft {
 class XbftConsensus {
 public:
-    XbftConsensus(std::shared_ptr<NetInterface> p_net, std::shared_ptr<ValueDealInterface> p_valueDeal, std::shared_ptr<KeyToolInterface> p_keyTool);
+    XbftConsensus(std::shared_ptr<NetInterface> p_net, std::shared_ptr<ValueDealInterface> p_valueDeal,
+        std::shared_ptr<KeyToolInterface> p_keyTool);
     ~XbftConsensus();
 
     bool Initialize(std::shared_ptr<KeyInterface> p_keyInfo, const std::vector<std::string> &cr_validatorsVec,
@@ -49,7 +50,6 @@ public:
     bool IsValidator() const;                      // Return true if this node is a leader
     bool IsViewActive() const;
     size_t GetQuorumSize() const;  // Get quorum size, 2f+1
-    bool CheckProof(const std::string &cr_proof, const std::function<void(bool)> &cr_fun);
     bool UpdateValidatorsAndProof(const protocol::ValidatorSet &cr_validatorSet, const std::string &cr_lastProof);
     void UpdateValidators(const protocol::ValidatorSet &cr_validatorSet);
     bool UpdateProof(const std::string &proof);

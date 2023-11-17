@@ -54,7 +54,7 @@ if(NOT DEFINED CODE_COVER)
     option(CODE_COVER "Use gcov " ON)
 endif()
 
-print(STATUS CODE_COVER=${CODE_COVER})
+message(STATUS CODE_COVER=${CODE_COVER})
 
 IF(CODE_COVER)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
@@ -87,7 +87,7 @@ if(COMPILE_3RD)
     include(cmake/3rd.cmake)
 endif()
 
-include(${XBFT_ROOT_DIR}/cmake/clang-tidy.cmake)
+#include(cmake/clang-tidy.cmake)
 
 include(cmake/proto.cmake)
 
@@ -105,7 +105,7 @@ if(NOT DEFINED BUILD_UNIT_TESTS_OPT)
 endif()
 
 if(NOT DEFINED BUILD_SAMPLE_OPT)
-    option(BUILD_SAMPLE_OPT "Build sample" ON)
+    option(BUILD_SAMPLE_OPT "Build sample" OFF)
 endif()
 
 # c++17

@@ -21,7 +21,6 @@
  */
 
 #include "XbftEngine.h"
-#include "ConsEngine.h"
 #include "XbftConsensus.h"
 #include "XbftLiveness.h"
 
@@ -29,7 +28,7 @@ namespace xbft {
 
 XbftEngine::XbftEngine(std::shared_ptr<NetInterface> p_net, std::shared_ptr<ValueDealInterface> p_valueDeal,
     std::shared_ptr<KeyToolInterface> p_keyTool) {
-    mp_consensus = std::make_shared<XbftConsensus>(p_valueDeal, p_net, p_keyTool);
+    mp_consensus = std::make_shared<XbftConsensus>(p_net, p_valueDeal, p_keyTool);
     mp_paceMaker = std::make_shared<RoundRobinPaceMaker>(p_net, p_keyTool, mp_consensus);
 }
 
@@ -43,7 +42,7 @@ std::string XbftEngine::GetEngineName() {
 }
 
 std::string XbftEngine::GetEngineVersion() {
-    return "1.0.0"
+    return "1.0.0";
 }
 
 bool XbftEngine::StartEngine(std::shared_ptr<NodeInfoInterface> p_nodeInfo) {
@@ -63,7 +62,7 @@ void XbftEngine::Rotate() {
     mp_paceMaker->Rotate();
 }
 
-ProposeStatus XbftEngine::Propose(std::shared_ptr<ConsData> p_consData) {
+bool XbftEngine::Propose(std::shared_ptr<ConsData> p_consData) {
     return mp_consensus->Propose(p_consData);
 }
 

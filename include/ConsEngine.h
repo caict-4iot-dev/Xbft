@@ -28,33 +28,13 @@
 #include <vector>
 
 namespace xbft {
-enum ProposeStatus {
-    PROPOSE_SUCCESS = 0,
-    PROPOSE_NOT_LEADER = 1,       // this node is not leader
-    PROPOSE_OUT_SEQUENCE = 2,     // out of date sequence
-    PROPOSE_BUILD_TREE_FAIL = 3,  // append node to tree error
-};
-
 // cons data struct;
 class ConsData {
 public:
     virtual int64_t GetSeq() = 0;
     virtual std::string GetPreviousProof() = 0;
-};
-
-class BftEngine {
-public:
-    virtual std::string GetEngineName() = 0;     // engine name
-    virtual std::string GetEngineVersion() = 0;  // engine version
-    virtual bool StartEngine(std::shared_ptr<NodeInfoInterface> p_nodeInfo) = 0;
-
-public:
-    virtual void Rotate() = 0;
-    virtual ProposeStatus Propose(std::shared_ptr<ConsData> p_consData) = 0;
-    virtual void Recv(const std::string &cr_msg, std::shared_ptr<KeyToolInterface> p_keyTool) = 0;
-    virtual bool IsLeader() = 0;
-    virtual std::string GetLatestProof() = 0;
-    virtual int64_t GetViewNumber() = 0;
+    virtual std::string GetHash() = 0;
+    virtual std::string GetStringValue() = 0;
 };
 
 // net interface for cons engine to exchange data
@@ -79,10 +59,12 @@ public:
 typedef bool (*VerifyFun)(
     const std::string &cr_signData, const std::string &cr_signature, const std::string &cr_publicKey);
 typedef std::string (*PublicKeyToAddrFun)(const std::string &cr_publicKey);
+typedef std::shared_ptr<ConsData> (*StringToConsDataFun)(const std::string &cr_input);
 
 struct KeyToolInterface {
     VerifyFun Verify;
     PublicKeyToAddrFun PublicKeyToAddr;
+    StringToConsDataFun CreateConsData;
 };
 
 // config info to set node info
@@ -96,7 +78,7 @@ public:
 };
 
 // value dealing
-typedef void (*CheckValueFun)(std::shared_ptr<ConsData> p_consData);
+typedef bool (*CheckValueFun)(std::shared_ptr<ConsData> p_consData);
 typedef void (*ValueCommitedFun)(std::shared_ptr<ConsData> p_consData, const std::string &cr_proof);
 
 struct ValueDealInterface {
@@ -104,6 +86,20 @@ struct ValueDealInterface {
     ValueCommitedFun ValueCommited;
 };
 
+class BftEngine {
+public:
+    virtual std::string GetEngineName() = 0;     // engine name
+    virtual std::string GetEngineVersion() = 0;  // engine version
+    virtual bool StartEngine(std::shared_ptr<NodeInfoInterface> p_nodeInfo) = 0;
+
+public:
+    virtual void Rotate() = 0;
+    virtual bool Propose(std::shared_ptr<ConsData> p_consData) = 0;
+    virtual void Recv(const std::string &cr_msg, std::shared_ptr<KeyToolInterface> p_keyTool) = 0;
+    virtual bool IsLeader() = 0;
+    virtual std::string GetLatestProof() = 0;
+    virtual int64_t GetViewNumber() = 0;
+};
 
 }  // namespace xbft
 

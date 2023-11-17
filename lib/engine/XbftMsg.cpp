@@ -20,7 +20,6 @@
  * @file: XbftMsg.cpp
  */
 
-
 #include "XbftMsg.h"
 #include "ConsEngine.h"
 #include "Logger.h"
@@ -35,7 +34,7 @@ XbftMsg::XbftMsg(const protocol::XbftEnv &cr_xbftEnv, std::shared_ptr<KeyToolInt
     GetBasicInfo(cr_xbftEnv, m_strType, m_viewNumber, m_sequence, m_replicaId, m_previousQc, m_parentHash);
     std::string strValue;
     if (AnalysisValue(cr_xbftEnv, strValue)) {
-        m_value = std::make_shared<ConsData>(strValue);
+        m_value = p_keyTool->CreateConsData(strValue);
     }
     m_replicaAddr = GetReplicaAddress(m_xbftEnv);
     m_hash = crypto::Sha256::Crypto(m_xbftEnv.SerializeAsString());
@@ -46,7 +45,7 @@ XbftMsg::~XbftMsg() = default;
 void XbftMsg::GetBasicInfo(const protocol::XbftEnv &cr_xbftEnv, std::string &r_type, int64_t &r_viewNumber,
     int64_t &r_seq, int64_t &r_replicaId, protocol::XbftQc &r_preQc, std::string &r_parentHash) {
     r_replicaId = 0;
-    const protocol::Xbft &xbft = xbftEnv.xbft();
+    const protocol::Xbft &xbft = cr_xbftEnv.xbft();
     switch (xbft.type()) {
     case protocol::XBFT_TYPE_PROPOSE: {
         r_type = "PROPOSE";
@@ -97,7 +96,6 @@ void XbftMsg::GetBasicInfo(const protocol::XbftEnv &cr_xbftEnv, std::string &r_t
 std::string XbftMsg::GetReplicaAddress(const protocol::XbftEnv &cr_xbftEnv) {
     return mp_keyTool->PublicKeyToAddr(cr_xbftEnv.signature().public_key());
 }
-
 
 bool XbftMsg::AnalysisValue(const protocol::XbftEnv &cr_xbftEnv, std::string &r_value) {
     const protocol::Xbft &xbft = cr_xbftEnv.xbft();

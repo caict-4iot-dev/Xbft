@@ -69,7 +69,8 @@ bool RoundRobinPaceMaker::Rotate() {
 
     // Send new view message to others
     // 然后发送该New View消息到其他的节点
-    mp_net->SendMsg(mp_consensus->GetReplicaKey()->GetAddress(), mp_consensus->GetOtherReplicaAddrs(), p_newView);
+    mp_net->SendMsg(mp_consensus->GetReplicaKey()->GetAddress(), mp_consensus->GetOtherReplicaAddrs(),
+        p_newView->GetXbftEnv().SerializeAsString());
     LOG_INFO(
         "Replica(%ld), Leader rotate, Send new view(%ld)", mp_consensus->GetReplicaId(), p_newView->GetViewNumber());
     return true;
@@ -185,8 +186,8 @@ void RoundRobinPaceMaker::onTimeout() {
             LOG_INFO("Replica(%ld),Need to send new view again, view(%ld), last(%ld), interval(%ld)",
                 mp_consensus->GetReplicaId(), ins.GetViewNumber(), ins.GetLastSendTime(), m_sendMsgInterval);
             XbftMsgPointer p_newView = newNewView(ins.GetViewNumber(), 0);
-            mp_net->SendMsg(
-                mp_consensus->GetReplicaKey()->GetAddress(), mp_consensus->GetOtherReplicaAddrs(), p_newView);
+            mp_net->SendMsg(mp_consensus->GetReplicaKey()->GetAddress(), mp_consensus->GetOtherReplicaAddrs(),
+                p_newView->GetXbftEnv().SerializeAsString());
             ins.SetLastSendTime(currentTime);
         }
     }
@@ -223,13 +224,13 @@ XbftMsgPointer RoundRobinPaceMaker::newNewView(int64_t viewNumber, int64_t round
     char strSignedViewNumber[2 * sizeof(int64_t)];
     *(int64_t *)strSignedViewNumber = viewNumber;
     *(int64_t *)(strSignedViewNumber + sizeof(int64_t)) = highQcViewNumber;
-    p_newView->mutable_signature()->set_public_key(mp_consensus->GetReplicaKey()->GetEncPublicKey());
+    p_newView->mutable_signature()->set_public_key(mp_consensus->GetReplicaKey()->GetPublicKey());
     p_newView->mutable_signature()->set_sign_data(
         mp_consensus->GetReplicaKey()->Sign(std::string(strSignedViewNumber)));
 
-    p_env->mutable_signature()->set_public_key(mp_consensus->GetReplicaKey()->GetEncPublicKey());
+    p_env->mutable_signature()->set_public_key(mp_consensus->GetReplicaKey()->GetPublicKey());
     p_env->mutable_signature()->set_sign_data(mp_consensus->GetReplicaKey()->Sign(p_xbft->SerializeAsString()));
-    return std::make_shared<XbftMsg>(*p_env);
+    return std::make_shared<XbftMsg>(*p_env, mp_keyTool);
 }
 
 XbftTcPointer RoundRobinPaceMaker::GetLastTc() {

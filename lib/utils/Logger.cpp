@@ -38,7 +38,7 @@ void utils::Logger::CustomerPrefix(std::ostream &r_os, const google::LogMessageI
 }
 
 bool utils::Logger::InitializeGlog(const std::string &cr_fileName, LogLevel level, const std::string &cr_label) {
-    levelVlog = level;
+    int levelVlog = level;
 
     // Is standard output required in addition to log files，default
     FLAGS_alsologtostderr = true;

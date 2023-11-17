@@ -26,6 +26,7 @@
 #include <openssl/ecdsa.h>
 #include <openssl/err.h>
 #include <openssl/sha.h>
+#include <string>
 
 namespace crypto {
 class Hash {

@@ -23,6 +23,7 @@
 #ifndef __XBFT_ENGINE_H__
 #define __XBFT_ENGINE_H__
 
+#include "ConsEngine.h"
 #include <memory>
 #include <string>
 
@@ -30,7 +31,6 @@ namespace xbft {
 
 class XbftConsensus;
 class RoundRobinPaceMaker;
-struct ValueDealInterface;
 
 class XbftEngine : public BftEngine {
 public:
@@ -46,7 +46,7 @@ public:
     std::string GetEngineVersion();
 
     void Rotate();
-    ProposeStatus Propose(std::shared_ptr<ConsData> p_consData);
+    bool Propose(std::shared_ptr<ConsData> p_consData);
     void Recv(const std::string &cr_consMsg, std::shared_ptr<KeyToolInterface> p_keyTool);
     bool IsLeader();
 

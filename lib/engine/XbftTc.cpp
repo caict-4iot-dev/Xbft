@@ -20,6 +20,7 @@
  * @file: XbftTc.cpp
  */
 
+
 #include "XbftTc.h"
 #include "ConsEngine.h"
 #include "Logger.h"
@@ -31,10 +32,6 @@ XbftTc::XbftTc(const protocol::XbftTc &cr_timeoutCert, std::shared_ptr<KeyToolIn
 }
 
 XbftTc::~XbftTc() = default;
-
-protocol::XbftQc XbftTc::GetHighQc() {
-    return protocol::XbftQc();
-}
 
 bool XbftTc::IsValid(const XbftValidatorSet &cr_validators, size_t quorumSize) const {
     // 检查high_qc_view_number队列和signature队列长度一致

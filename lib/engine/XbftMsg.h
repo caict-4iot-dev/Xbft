@@ -28,7 +28,6 @@
 #include <memory>
 
 namespace xbft {
-
 struct KeyToolInterface;
 
 class XbftMsg {
@@ -56,7 +55,7 @@ public:
     bool CheckMsgItem(const XbftValidatorSet &cr_validators) const;  // Check the format
     static void GetBasicInfo(const protocol::XbftEnv &cr_xbftEnv, std::string &r_type, int64_t &r_viewNumber,
         int64_t &r_seq, int64_t &r_replicaId, protocol::XbftQc &r_preQc, std::string &r_parentHash);
-    static std::string GetReplicaAddress(const protocol::XbftEnv &cr_xbftEnv);
+    std::string GetReplicaAddress(const protocol::XbftEnv &cr_xbftEnv);
     static bool AnalysisValue(const protocol::XbftEnv &cr_xbftEnv, std::string &r_value);
 
 private:

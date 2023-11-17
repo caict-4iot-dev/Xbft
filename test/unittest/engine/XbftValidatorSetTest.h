@@ -16,30 +16,15 @@
  *  limitations under the License.
  *
  * @author: maxufeng@caict.ac.cn
- * @date: 2023-11-15 15:08:21
- * @file: XbftTc.h
+ * @date: 2023-11-17 10:58:20
+ * @file: XbftValidatorSetTest.h
  */
 
-#ifndef __XBFTTC_H__
-#define __XBFTTC_H__
 
-#include "XbftValidatorSet.h"
-#include "consensus.pb.h"
-#include <memory>
+#ifndef __XBFTVALIDATORSET_TEST_H__
+#define __XBFTVALIDATORSET_TEST_H__
 
-namespace xbft {
-struct KeyToolInterface;
-class XbftTc {
-public:
-    XbftTc(const protocol::XbftTc &timeoutCert, std::shared_ptr<KeyToolInterface> p_keyTool);
-    ~XbftTc();
+#include <gtest/gtest.h>
 
-    bool IsValid(const XbftValidatorSet &validators, size_t quorumSize) const;
-
-private:
-    protocol::XbftTc m_tc;
-    std::shared_ptr<KeyToolInterface> mp_keyTool;
-};
-}  // namespace xbft
-
+class XbftValidatorSetTest : public testing::Test {};
 #endif

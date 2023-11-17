@@ -16,30 +16,27 @@
  *  limitations under the License.
  *
  * @author: maxufeng@caict.ac.cn
- * @date: 2023-11-15 15:08:21
- * @file: XbftTc.h
+ * @date: 2023-11-17 09:49:05
+ * @file: LoggerTest.cpp
  */
 
-#ifndef __XBFTTC_H__
-#define __XBFTTC_H__
 
-#include "XbftValidatorSet.h"
-#include "consensus.pb.h"
-#include <memory>
+#include "LoggerTest.h"
+#include "Logger.h"
+#include <filesystem>
 
-namespace xbft {
-struct KeyToolInterface;
-class XbftTc {
-public:
-    XbftTc(const protocol::XbftTc &timeoutCert, std::shared_ptr<KeyToolInterface> p_keyTool);
-    ~XbftTc();
+TEST_F(LoggerTest, InitializeGlog) {
+    std::string path = "./testlog/";
+    utils::Logger::InitializeGlog(path, utils::LOG_LEVEL_INFO, "xbft");
+    ASSERT_EQ(utils::Logger::ms_logLevel, utils::LOG_LEVEL_INFO);
+    LOG_INFO("this is test line");
+    EXPECT_TRUE(std::filesystem::exists(path));
+    utils::Logger::Exit();
+    std::filesystem::remove_all(path);
+}
 
-    bool IsValid(const XbftValidatorSet &validators, size_t quorumSize) const;
-
-private:
-    protocol::XbftTc m_tc;
-    std::shared_ptr<KeyToolInterface> mp_keyTool;
-};
-}  // namespace xbft
-
-#endif
+TEST_F(LoggerTest, SetLogLevel) {
+    int log_level = 4;
+    utils::Logger::SetLogLevel(log_level);
+    ASSERT_EQ(utils::Logger::ms_logLevel, log_level);
+}
