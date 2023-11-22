@@ -12,23 +12,25 @@ project(xbft)
 set(PROJECT_VERSION 1.0.0)
 
 if(NOT DEFINED COMPILE_3RD)
-    option(COMPILE_3RD "Compile 3rd" OFF)
+    option(COMPILE_3RD "Compile 3rd" ON)
 endif()
 
 message(STATUS "COMPILE_3RD=" ${COMPILE_3RD})
 
 if(COMPILE_3RD)
-    set(XBFT_3RD_LIB ${CMAKE_CURRENT_SOURCE_DIR}/xbft-3rd)
-else()
-    set(XBFT_3RD_LIB /home/xbft-3rd)
+    set(XBFT_3RD_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/3rd)
+    if(NOT EXISTS ${XBFT_3RD_SRC_DIR})
+        message(FATAL_ERROR "Git submodules not initialized, execute:\n  git submodule update --init")
+    endif()
 endif()
+
+set(XBFT_3RD_LIB ${CMAKE_CURRENT_SOURCE_DIR}/xbft-3rd)
 
 set(XBFT_DEPEND_LIB "-lpthread -ldl -lz -lstdc++fs")
 
 set(XBFT_DEPENDS_LIBS
     gtest
     gmock
-    gmssl
     protobuf
     ssl
     crypto
@@ -91,6 +93,10 @@ endif()
 
 include(cmake/proto.cmake)
 
+if(NOT EXISTS ${XBFT_3RD_LIB})
+    message(FATAL_ERROR "${XBFT_3RD_LIB} not exist...")
+endif()
+
 if(NOT DEFINED GLOG_CUSTOM_PREFIX_SUPPORT)
     option(GLOG_CUSTOM_PREFIX_SUPPORT "option for GLOG_CUSTOM_PREFIX_SUPPORT" ON)
 endif()
@@ -113,6 +119,7 @@ add_definitions(-std=c++1z)
 
 set(XBFT_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib)
 set(XBFT_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set(XBFT_ROOT_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 set(XBFT_INCLUDE_DIR
     ${XBFT_3RD_LIB}/include

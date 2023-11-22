@@ -1,5 +1,5 @@
 if(NOT PROTO_BIN)
-    find_program(PROTO_BIN protoc ${BIFCORE_3RD_LIB}/bin)
+    find_program(PROTO_BIN protoc ${XBFT_3RD_LIB}/bin)
 endif()
 
 if(NOT PROTO_BIN)
