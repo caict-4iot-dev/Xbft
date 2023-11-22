@@ -102,7 +102,7 @@ bool XbftConsensus::UpdateProof(const std::string &cr_lastProof) {
             mp_lock = tmp;
             mp_exec = tmp;
             m_highNodeAndQc = std::make_pair(tmp, nullptr);
-            LOG_INFO("Create genesis node(view:%ld,`:%ld, hash:%s)", m_viewNumber, m_lastSequence,
+            LOG_INFO("Create genesis node(view:%ld, seq:%ld, hash:%s)", m_viewNumber, m_lastSequence,
                 utils::String::Bin4ToHexString(tmp->GetHash()).c_str());
             return true;
         }
@@ -182,6 +182,10 @@ int64_t XbftConsensus::GetLeaderId() const {
     return m_viewNumber % m_validators.Size();
 }
 
+std::string XbftConsensus::GetLastProof() const {
+    return m_lastProof;
+}
+
 void XbftConsensus::initSelfQc(const XbftNodePointer &p_node) {
     protocol::XbftQcValue qcValue;
     qcValue.set_node_value_hash(p_node->GetConsensusValue()->GetHash());
@@ -246,7 +250,7 @@ bool XbftConsensus::Propose(std::shared_ptr<ConsData> p_consData) {
         return false;
     }
     XbftMsgPointer env = newPropose(p_node);
-    mp_net->SendMsg(mp_replicaKey->GetAddress(), GetOtherReplicaAddrs(), env->GetXbftEnv().SerializeAsString());
+    mp_net->m_sendMsg(mp_replicaKey->GetAddress(), GetOtherReplicaAddrs(), env->GetXbftEnv().SerializeAsString());
     p_node->SetLastProposeTime(utils::Timestamp::HighResolution(), 0);
 
     return true;
@@ -255,7 +259,7 @@ bool XbftConsensus::Propose(std::shared_ptr<ConsData> p_consData) {
 bool XbftConsensus::SendPropseAgain(const XbftNodePointer &p_node) {
     int64_t currentRound = p_node->GetProposeRound() + 1;
     XbftMsgPointer env = newPropose(p_node, currentRound);
-    mp_net->SendMsg(mp_replicaKey->GetAddress(), GetOtherReplicaAddrs(), env->GetXbftEnv().SerializeAsString());
+    mp_net->m_sendMsg(mp_replicaKey->GetAddress(), GetOtherReplicaAddrs(), env->GetXbftEnv().SerializeAsString());
     p_node->SetLastProposeTime(utils::Timestamp::HighResolution(), currentRound);
     return true;
 }
@@ -404,7 +408,7 @@ bool XbftConsensus::onVote(const XbftMsgPointer &p_xbftMsg) {
 
             // Received enough vote messages, send decide mesage
             XbftMsgPointer p_env = newDecide(p_node, 0);
-            mp_net->SendMsg(
+            mp_net->m_sendMsg(
                 mp_replicaKey->GetAddress(), GetOtherReplicaAddrs(), p_env->GetXbftEnv().SerializeAsString());
         }
 
@@ -426,8 +430,8 @@ bool XbftConsensus::onPropose(const XbftMsgPointer &p_xbftMsg) {
             break;
         }
 
-        // Check the value by ledger, 2:not valid
-        if (mp_valueDealing->CheckValue(p_xbftMsg->GetValue())) {
+        // Check the value by ledger
+        if (!mp_valueDealing->m_checkValue(p_xbftMsg->GetValue())) {
             LOG_ERROR("Failed to check xbft message(%s)", p_xbftMsg->GetDesc().c_str());
             break;
         }
@@ -495,7 +499,7 @@ bool XbftConsensus::onPropose(const XbftMsgPointer &p_xbftMsg) {
                 newVote(p_xbftMsg->GetXbftEnv().xbft().propose(), p_xbftMsg->GetValue()->GetHash(), 0);
             std::vector<std::string> vec;
             vec.push_back(getLeaderAddr());
-            mp_net->SendMsg(mp_replicaKey->GetAddress(), vec, p_env->GetXbftEnv().SerializeAsString());
+            mp_net->m_sendMsg(mp_replicaKey->GetAddress(), vec, p_env->GetXbftEnv().SerializeAsString());
         } else {
             LOG_WARN("Replica(%ld) received unproper message", m_replicaId);
         }
@@ -564,8 +568,8 @@ bool XbftConsensus::update(const XbftNodePointer &p_blk2, const XbftQcPointer &p
 
         // 该标志位表示，如果该区块没有预提交过，则将该区块预提交。
         if (!p_blk2->GetPreCommit()) {
-            mp_valueDealing->ValueCommited(
-                p_blk2->GetConsensusValue(), generateProof(p_blk2, p_qc).SerializeAsString());
+            m_lastProof = generateProof(p_blk2, p_qc).SerializeAsString();
+            mp_valueDealing->m_valueCommited(p_blk2->GetConsensusValue(), m_lastProof);
             LOG_INFO("Pre commit:%s", p_blk2->GetDesc().c_str());
             p_blk2->SetPreCommit(true);
             p_blk2->SetEndTime(utils::Timestamp::HighResolution());
@@ -679,7 +683,7 @@ void XbftConsensus::ViewChanged(int64_t viewNumber, const XbftQcPointer &cr_qc) 
 }
 
 void XbftConsensus::SetViewInActive() {
-    LOG_INFO("View(%ld) is set to inactive", m_viewNumber);
+    LOG_INFO("Replica(%ld) View(%ld) is set to inactive", m_replicaId, m_viewNumber);
     m_isViewActive = false;
 }
 

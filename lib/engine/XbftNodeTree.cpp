@@ -29,14 +29,6 @@ XbftNodeTree::XbftNodeTree() = default;
 
 XbftNodeTree::~XbftNodeTree() = default;
 
-bool XbftNodeTree::Initialize(XbftNodePointer p_rootNode) {
-    m_nodes.clear();
-    m_nodes.insert(std::make_pair(p_rootNode->GetHash(), p_rootNode));
-    m_leafNodes.clear();
-    m_leafNodes.push_back(p_rootNode);
-    return true;
-}
-
 XbftNodePointer XbftNodeTree::GetNode(const std::string &cr_hash) {
     auto iter = m_nodes.find(cr_hash);
     if (iter == m_nodes.end()) {

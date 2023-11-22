@@ -16,27 +16,25 @@
  *  limitations under the License.
  *
  * @author: maxufeng@caict.ac.cn
- * @date: 2023-11-17 09:49:05
- * @file: LoggerTest.cpp
+ * @date: 2023-11-20 18:19:44
+ * @file: XbftEngineTest.h
  */
 
+#ifndef __XBFTENGINE_TEST_H__
+#define __XBFTENGINE_TEST_H__
 
-#include "LoggerTest.h"
-#include "Logger.h"
-#include <filesystem>
+#include <gtest/gtest.h>
+#include "ConsEngine.h"
+#include "Tool.h"
 
-TEST_F(LoggerTest, InitializeGlog) {
-    std::string path = "./testlog/";
-    utils::Logger::InitializeGlog(path, utils::LOG_LEVEL_TRACE, "xbft");
-    ASSERT_EQ(utils::Logger::ms_logLevel, utils::LOG_LEVEL_TRACE);
-    LOG_INFO("this is test line");
-    EXPECT_TRUE(std::filesystem::exists(path));
-    utils::Logger::Exit();
-    std::filesystem::remove_all(path);
+namespace xbft {
+class XbftEngine;
 }
 
-TEST_F(LoggerTest, SetLogLevel) {
-    int log_level = 0;
-    utils::Logger::SetLogLevel(log_level);
-    ASSERT_EQ(utils::Logger::ms_logLevel, log_level);
-}
+class Key;
+class XbftEngineTest : public testing::Test {
+public:
+    static std::shared_ptr<xbft::XbftEngine> CreateXbftEngine(int64_t interVal, std::shared_ptr<Key> p_key);
+};
+
+#endif

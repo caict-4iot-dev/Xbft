@@ -42,7 +42,7 @@ typedef void (*SendMsgFun)(
     const std::string &cr_from, const std::vector<std::string> &cr_dest, const std::string &cr_value);
 
 struct NetInterface {
-    SendMsgFun SendMsg;
+    SendMsgFun m_sendMsg;
 };
 
 
@@ -62,9 +62,9 @@ typedef std::string (*PublicKeyToAddrFun)(const std::string &cr_publicKey);
 typedef std::shared_ptr<ConsData> (*StringToConsDataFun)(const std::string &cr_input);
 
 struct KeyToolInterface {
-    VerifyFun Verify;
-    PublicKeyToAddrFun PublicKeyToAddr;
-    StringToConsDataFun CreateConsData;
+    VerifyFun m_verify;
+    PublicKeyToAddrFun m_publicKeyToAddr;
+    StringToConsDataFun m_createConsData;
 };
 
 // config info to set node info
@@ -82,8 +82,8 @@ typedef bool (*CheckValueFun)(std::shared_ptr<ConsData> p_consData);
 typedef void (*ValueCommitedFun)(std::shared_ptr<ConsData> p_consData, const std::string &cr_proof);
 
 struct ValueDealInterface {
-    CheckValueFun CheckValue;
-    ValueCommitedFun ValueCommited;
+    CheckValueFun m_checkValue;
+    ValueCommitedFun m_valueCommited;
 };
 
 class BftEngine {
@@ -91,14 +91,6 @@ public:
     virtual std::string GetEngineName() = 0;     // engine name
     virtual std::string GetEngineVersion() = 0;  // engine version
     virtual bool StartEngine(std::shared_ptr<NodeInfoInterface> p_nodeInfo) = 0;
-
-public:
-    virtual void Rotate() = 0;
-    virtual bool Propose(std::shared_ptr<ConsData> p_consData) = 0;
-    virtual void Recv(const std::string &cr_msg, std::shared_ptr<KeyToolInterface> p_keyTool) = 0;
-    virtual bool IsLeader() = 0;
-    virtual std::string GetLatestProof() = 0;
-    virtual int64_t GetViewNumber() = 0;
 };
 
 }  // namespace xbft

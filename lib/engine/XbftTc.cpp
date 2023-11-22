@@ -44,7 +44,7 @@ bool XbftTc::IsValid(const XbftValidatorSet &cr_validators, size_t quorumSize) c
     for (int i = 0; i < m_tc.high_qc_view_number_size(); i++) {
         // signature
         const protocol::Signature &sig = m_tc.signature(i);
-        std::string addr = mp_keyTool->PublicKeyToAddr(sig.public_key());
+        std::string addr = mp_keyTool->m_publicKeyToAddr(sig.public_key());
         if (cr_validators.QueryId(addr) == -1) {
             LOG_WARN("Cann't find the tc'validator from list");
             continue;
@@ -54,7 +54,7 @@ bool XbftTc::IsValid(const XbftValidatorSet &cr_validators, size_t quorumSize) c
         char strSignedViewNumber[2 * sizeof(int64_t)];
         *(int64_t *)strSignedViewNumber = m_tc.view_number();
         *(int64_t *)(strSignedViewNumber + sizeof(int64_t)) = m_tc.high_qc_view_number(i);
-        if (!mp_keyTool->Verify(strSignedViewNumber, sig.sign_data(), sig.public_key())) {
+        if (!mp_keyTool->m_verify(strSignedViewNumber, sig.sign_data(), sig.public_key())) {
             LOG_WARN("Failed to verify the tc's signature");
             continue;
         }

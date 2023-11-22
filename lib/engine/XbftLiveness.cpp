@@ -69,7 +69,7 @@ bool RoundRobinPaceMaker::Rotate() {
 
     // Send new view message to others
     // 然后发送该New View消息到其他的节点
-    mp_net->SendMsg(mp_consensus->GetReplicaKey()->GetAddress(), mp_consensus->GetOtherReplicaAddrs(),
+    mp_net->m_sendMsg(mp_consensus->GetReplicaKey()->GetAddress(), mp_consensus->GetOtherReplicaAddrs(),
         p_newView->GetXbftEnv().SerializeAsString());
     LOG_INFO(
         "Replica(%ld), Leader rotate, Send new view(%ld)", mp_consensus->GetReplicaId(), p_newView->GetViewNumber());
@@ -186,7 +186,7 @@ void RoundRobinPaceMaker::onTimeout() {
             LOG_INFO("Replica(%ld),Need to send new view again, view(%ld), last(%ld), interval(%ld)",
                 mp_consensus->GetReplicaId(), ins.GetViewNumber(), ins.GetLastSendTime(), m_sendMsgInterval);
             XbftMsgPointer p_newView = newNewView(ins.GetViewNumber(), 0);
-            mp_net->SendMsg(mp_consensus->GetReplicaKey()->GetAddress(), mp_consensus->GetOtherReplicaAddrs(),
+            mp_net->m_sendMsg(mp_consensus->GetReplicaKey()->GetAddress(), mp_consensus->GetOtherReplicaAddrs(),
                 p_newView->GetXbftEnv().SerializeAsString());
             ins.SetLastSendTime(currentTime);
         }

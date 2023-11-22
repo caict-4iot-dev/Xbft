@@ -16,27 +16,24 @@
  *  limitations under the License.
  *
  * @author: maxufeng@caict.ac.cn
- * @date: 2023-11-17 09:49:05
- * @file: LoggerTest.cpp
+ * @date: 2023-11-17 16:42:40
+ * @file: XbftMsgTest.h
  */
 
 
-#include "LoggerTest.h"
-#include "Logger.h"
-#include <filesystem>
+#ifndef __XBFTMSG_TEST_H__
+#define __XBFTMSG_TEST_H__
 
-TEST_F(LoggerTest, InitializeGlog) {
-    std::string path = "./testlog/";
-    utils::Logger::InitializeGlog(path, utils::LOG_LEVEL_TRACE, "xbft");
-    ASSERT_EQ(utils::Logger::ms_logLevel, utils::LOG_LEVEL_TRACE);
-    LOG_INFO("this is test line");
-    EXPECT_TRUE(std::filesystem::exists(path));
-    utils::Logger::Exit();
-    std::filesystem::remove_all(path);
-}
+#include "consensus.pb.h"
+#include <gtest/gtest.h>
 
-TEST_F(LoggerTest, SetLogLevel) {
-    int log_level = 0;
-    utils::Logger::SetLogLevel(log_level);
-    ASSERT_EQ(utils::Logger::ms_logLevel, log_level);
-}
+namespace xbft {
+using XbftEnvPointer = std::shared_ptr<protocol::XbftEnv>;
+}  // namespace xbft
+
+class XbftMsgTest : public testing::Test {
+public:
+    static xbft::XbftEnvPointer CreateNewViewMsg(int64_t replicaId, int64_t viewNumber);
+};
+
+#endif

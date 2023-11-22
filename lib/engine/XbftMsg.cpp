@@ -34,7 +34,7 @@ XbftMsg::XbftMsg(const protocol::XbftEnv &cr_xbftEnv, std::shared_ptr<KeyToolInt
     GetBasicInfo(cr_xbftEnv, m_strType, m_viewNumber, m_sequence, m_replicaId, m_previousQc, m_parentHash);
     std::string strValue;
     if (AnalysisValue(cr_xbftEnv, strValue)) {
-        m_value = p_keyTool->CreateConsData(strValue);
+        m_value = p_keyTool->m_createConsData(strValue);
     }
     m_replicaAddr = GetReplicaAddress(m_xbftEnv);
     m_hash = crypto::Sha256::Crypto(m_xbftEnv.SerializeAsString());
@@ -94,7 +94,7 @@ void XbftMsg::GetBasicInfo(const protocol::XbftEnv &cr_xbftEnv, std::string &r_t
 }
 
 std::string XbftMsg::GetReplicaAddress(const protocol::XbftEnv &cr_xbftEnv) {
-    return mp_keyTool->PublicKeyToAddr(cr_xbftEnv.signature().public_key());
+    return mp_keyTool->m_publicKeyToAddr(cr_xbftEnv.signature().public_key());
 }
 
 bool XbftMsg::AnalysisValue(const protocol::XbftEnv &cr_xbftEnv, std::string &r_value) {
@@ -200,7 +200,7 @@ bool XbftMsg::CheckMsgItem(const XbftValidatorSet &cr_validators) const {
             } else {  // check the signatrue
                 const protocol::XbftQcValue &qcValue = xbft.vote().qc_content();
 
-                if (!mp_keyTool->Verify(qcValue.SerializeAsString(), xbft.vote().signature().sign_data(),
+                if (!mp_keyTool->m_verify(qcValue.SerializeAsString(), xbft.vote().signature().sign_data(),
                         xbft.vote().signature().public_key())) {
                     ret = false;
                 }
@@ -225,7 +225,7 @@ bool XbftMsg::CheckMsgItem(const XbftValidatorSet &cr_validators) const {
                 char strSignedViewNumber[2 * sizeof(int64_t)];
                 *(int64_t *)strSignedViewNumber = tcValue.view_number();
                 *(int64_t *)(strSignedViewNumber + sizeof(int64_t)) = highQcViewNumber;
-                if (!mp_keyTool->Verify(strSignedViewNumber, xbft.new_view().signature().sign_data(),
+                if (!mp_keyTool->m_verify(strSignedViewNumber, xbft.new_view().signature().sign_data(),
                         xbft.new_view().signature().public_key())) {
                     ret = false;
                 }
@@ -243,7 +243,7 @@ bool XbftMsg::CheckMsgItem(const XbftValidatorSet &cr_validators) const {
 
         const protocol::Xbft &pbft = m_xbftEnv.xbft();
         const protocol::Signature &sig = m_xbftEnv.signature();
-        if (!mp_keyTool->Verify(pbft.SerializeAsString(), sig.sign_data(), sig.public_key())) {
+        if (!mp_keyTool->m_verify(pbft.SerializeAsString(), sig.sign_data(), sig.public_key())) {
             LOG_TRACE("ser:%s", utils::String::BinToHexString(pbft.SerializeAsString()).c_str());
             LOG_TRACE("sig:%s", utils::String::BinToHexString(sig.sign_data()).c_str());
             LOG_TRACE("pub:%s", utils::String::BinToHexString(sig.public_key()).c_str());

@@ -24,13 +24,74 @@
 
 #ifndef __XBFT_H__
 #define __XBFT_H__
-
 namespace xbft {
-
-
+/**
+ * @description: create xbft engine pointer
+ * @return {*}
+ */
 std::shared_ptr<BftEngine> CreateXbftEngine(std::shared_ptr<NetInterface> p_net,
     std::shared_ptr<ValueDealInterface> p_valueDeal, std::shared_ptr<NodeInfoInterface> p_nodeInfo,
     std::shared_ptr<KeyToolInterface> p_keyTool);
+
+/**
+ * @description: trigger xbft consensus view-change
+ * @param {shared_ptr<BftEngine>} p_engine
+ * @return {*}
+ */
+void Rotate(std::shared_ptr<BftEngine> p_engine);
+
+/**
+ * @description: Provide consensus data and initiate xbft consensus proposal
+ * @param {shared_ptr<BftEngine>} p_engine
+ * @param {shared_ptr<ConsData>} p_consData
+ * @return {true: propose success. false:propose fail}
+ */
+bool Propose(std::shared_ptr<BftEngine> p_engine, std::shared_ptr<ConsData> p_consData);
+
+/**
+ * @description: Receive and process xbft consensus protocol data
+ * @param {const std::string &} cr_consMsg
+ * @param {shared_ptr<KeyToolInterface>} p_keyTool
+ * @return {true: propose success. false:propose fail}
+ */
+void Recv(
+    std::shared_ptr<BftEngine> p_engine, const std::string &cr_consMsg, std::shared_ptr<KeyToolInterface> p_keyTool);
+
+/**
+ * @description: Detects whether the current node is the primary node in the xbft consensus
+ * @param {shared_ptr<BftEngine>} p_engine
+ * @return {true: is leader. false: not leader}
+ */
+bool IsLeader(std::shared_ptr<BftEngine> p_engine);
+
+/**
+ * @description: Get xbft proof data for the most recent consensus
+ * @param {shared_ptr<BftEngine>} p_engine
+ * @return {proof data}
+ */
+std::string GetLatestProof(std::shared_ptr<BftEngine> p_engine);
+
+/**
+ * @description: Gets the xbft view-number data for the most recent consensus
+ * @param {shared_ptr<BftEngine>} p_engine
+ * @return {view-number}
+ */
+int64_t GetViewNumber(std::shared_ptr<BftEngine> p_engine);
+
+/**
+ * @description: Check whether view switching is underway on the current node
+ * @param {shared_ptr<BftEngine>} p_engine
+ * @return {true: not in view-change; false: in view-change}
+ */
+bool IsViewActive(std::shared_ptr<BftEngine> p_engine);
+
+
+/**
+ * @description: Obtain the xbft consensus QUORUM number
+ * @param {shared_ptr<BftEngine>} p_engine
+ * @return {quorum num}
+ */
+size_t GetQuorumSize(std::shared_ptr<BftEngine> p_engine);
 
 }  // namespace xbft
 

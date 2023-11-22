@@ -16,27 +16,15 @@
  *  limitations under the License.
  *
  * @author: maxufeng@caict.ac.cn
- * @date: 2023-11-17 09:49:05
- * @file: LoggerTest.cpp
+ * @date: 2023-11-22 10:07:40
+ * @file: XbftTest.h
  */
 
+#ifndef __XBFT_TEST_H__
+#define __XBFT_TEST_H__
 
-#include "LoggerTest.h"
-#include "Logger.h"
-#include <filesystem>
+#include <gtest/gtest.h>
 
-TEST_F(LoggerTest, InitializeGlog) {
-    std::string path = "./testlog/";
-    utils::Logger::InitializeGlog(path, utils::LOG_LEVEL_TRACE, "xbft");
-    ASSERT_EQ(utils::Logger::ms_logLevel, utils::LOG_LEVEL_TRACE);
-    LOG_INFO("this is test line");
-    EXPECT_TRUE(std::filesystem::exists(path));
-    utils::Logger::Exit();
-    std::filesystem::remove_all(path);
-}
+class XbftTest : public testing::Test {};
 
-TEST_F(LoggerTest, SetLogLevel) {
-    int log_level = 0;
-    utils::Logger::SetLogLevel(log_level);
-    ASSERT_EQ(utils::Logger::ms_logLevel, log_level);
-}
+#endif

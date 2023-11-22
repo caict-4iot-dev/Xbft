@@ -16,27 +16,23 @@
  *  limitations under the License.
  *
  * @author: maxufeng@caict.ac.cn
- * @date: 2023-11-17 09:49:05
- * @file: LoggerTest.cpp
+ * @date: 2023-11-20 17:03:19
+ * @file: XbftConsensusTest.h
  */
 
+#ifndef __XBFTCONSENSUS_TEST_H__
+#define __XBFTCONSENSUS_TEST_H__
 
-#include "LoggerTest.h"
-#include "Logger.h"
-#include <filesystem>
+#include "consensus.pb.h"
+#include <gtest/gtest.h>
 
-TEST_F(LoggerTest, InitializeGlog) {
-    std::string path = "./testlog/";
-    utils::Logger::InitializeGlog(path, utils::LOG_LEVEL_TRACE, "xbft");
-    ASSERT_EQ(utils::Logger::ms_logLevel, utils::LOG_LEVEL_TRACE);
-    LOG_INFO("this is test line");
-    EXPECT_TRUE(std::filesystem::exists(path));
-    utils::Logger::Exit();
-    std::filesystem::remove_all(path);
-}
+namespace xbft {
+using XbftEnvPointer = std::shared_ptr<protocol::XbftEnv>;
+}  // namespace xbft
 
-TEST_F(LoggerTest, SetLogLevel) {
-    int log_level = 0;
-    utils::Logger::SetLogLevel(log_level);
-    ASSERT_EQ(utils::Logger::ms_logLevel, log_level);
-}
+class XbftConsensusTest : public testing::Test {
+public:
+    static xbft::XbftEnvPointer CreateProposeMsg(int64_t replicaId, int64_t viewNumber);
+    static xbft::XbftEnvPointer CreateVoteMsg(int64_t replicaId, int64_t viewNumber, int64_t sequence);
+};
+#endif

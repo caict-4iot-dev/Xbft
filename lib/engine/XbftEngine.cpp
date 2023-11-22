@@ -66,10 +66,6 @@ bool XbftEngine::Propose(std::shared_ptr<ConsData> p_consData) {
     return mp_consensus->Propose(p_consData);
 }
 
-bool XbftEngine::IsLeader() {
-    return mp_consensus->IsLeader();
-}
-
 void XbftEngine::Recv(const std::string &cr_consMsg, std::shared_ptr<KeyToolInterface> p_keyTool) {
     protocol::XbftEnv xbftEnv;
     xbftEnv.ParseFromString(cr_consMsg);
@@ -81,12 +77,24 @@ void XbftEngine::Recv(const std::string &cr_consMsg, std::shared_ptr<KeyToolInte
     }
 }
 
+bool XbftEngine::IsLeader() {
+    return mp_consensus->IsLeader();
+}
+
 std::string XbftEngine::GetLatestProof() {
-    return "";
+    return mp_consensus->GetLastProof();
 }
 
 int64_t XbftEngine::GetViewNumber() {
     return mp_consensus->GetViewNumber();
+}
+
+bool XbftEngine::IsViewActive() {
+    return mp_consensus->IsViewActive();
+}
+
+size_t XbftEngine::GetQuorumSize() {
+    return mp_consensus->GetQuorumSize();
 }
 
 

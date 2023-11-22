@@ -54,6 +54,7 @@ public:
     void UpdateValidators(const protocol::ValidatorSet &cr_validatorSet);
     bool UpdateProof(const std::string &proof);
     int64_t GetViewNumber() const;
+    std::string GetLastProof() const;
     int64_t GetLeaderId() const;
     std::vector<std::string> GetOtherReplicaAddrs() const;
     std::shared_ptr<KeyInterface> GetReplicaKey();
@@ -89,6 +90,7 @@ private:
     XbftNodeTree m_nodeTree;
     int64_t m_viewNumber;
     int64_t m_lastSequence;
+    std::string m_lastProof;
 
     XbftValidatorSet m_validators;
     bool m_isViewActive;

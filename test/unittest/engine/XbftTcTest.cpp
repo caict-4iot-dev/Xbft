@@ -22,35 +22,14 @@
 
 #include "XbftTcTest.h"
 #include "ConsEngine.h"
+#include "Tool.h"
 #include "XbftTc.h"
 #include "XbftValidatorSetTest.h"
 
-bool verifyTrue(const std::string &cr_signData, const std::string &cr_signature, const std::string &cr_publicKey) {
-    return true;
-}
 
-bool verifyFalse(const std::string &cr_signData, const std::string &cr_signature, const std::string &cr_publicKey) {
-    return false;
-}
-
-std::string pubKeyToAddress(const std::string &cr_publicKey) {
-    if (cr_publicKey == "pubkey 1")
-        return "test addr 1";
-    if (cr_publicKey == "pubkey 2")
-        return "test addr 2";
-    if (cr_publicKey == "pubkey 3")
-        return "test addr 3";
-    if (cr_publicKey == "pubkey 4")
-        return "test addr 4";
-    return "unknow address";
-}
-
-TEST_F(XbftTcTest, IsValidTrue) {
-    auto keyTool = std::make_shared<xbft::KeyToolInterface>();
+TEST_F(XbftTcTest, IsValid) {
+    auto keyTool = Tool::CreateKeyTool();
     ASSERT_TRUE(keyTool != nullptr);
-
-    keyTool->Verify = verifyTrue;
-    keyTool->PublicKeyToAddr = pubKeyToAddress;
 
     // message XbftTc {
     //     int64 view_number = 1;
@@ -63,90 +42,49 @@ TEST_F(XbftTcTest, IsValidTrue) {
     tc.add_high_qc_view_number(10);
     tc.add_high_qc_view_number(10);
     tc.add_high_qc_view_number(10);
+    protocol::Signature sig0;
+    sig0.set_public_key("pub-0");
+    *tc.add_signature() = sig0;
+
     protocol::Signature sig1;
-    sig1.set_public_key("pubkey 1");
+    sig1.set_public_key("pub-1");
     *tc.add_signature() = sig1;
 
     protocol::Signature sig2;
-    sig2.set_public_key("pubkey 2");
+    sig2.set_public_key("pub-2");
     *tc.add_signature() = sig2;
 
     protocol::Signature sig3;
-    sig3.set_public_key("pubkey 3");
+    sig3.set_public_key("pub-3");
     *tc.add_signature() = sig3;
 
-    protocol::Signature sig4;
-    sig4.set_public_key("pubkey 4");
-    *tc.add_signature() = sig4;
-
+    // tc verify true
     auto xtc = std::make_shared<xbft::XbftTc>(tc, keyTool);
     ASSERT_TRUE(xtc != nullptr);
 
     xbft::XbftValidatorSet validator;
-    protocol::ValidatorSet validatorsSet;
-    validatorsSet.add_validators()->set_address("test addr 1");
-    validatorsSet.add_validators()->set_address("test addr 2");
-    validatorsSet.add_validators()->set_address("test addr 3");
-    validatorsSet.add_validators()->set_address("test addr 4");
-    validator.Set(validatorsSet);
-
+    validator.Update("address-0", 0);
+    validator.Update("address-1", 1);
+    validator.Update("address-2", 2);
+    validator.Update("address-3", 3);
     EXPECT_EQ(xtc->IsValid(validator, validator.GetQuorumSize()), true);
-}
-
-TEST_F(XbftTcTest, IsValidVerifyFalse) {
-    auto keyTool = std::make_shared<xbft::KeyToolInterface>();
-    ASSERT_TRUE(keyTool != nullptr);
-
-    keyTool->Verify = verifyFalse;
-    keyTool->PublicKeyToAddr = pubKeyToAddress;
-
-    // message XbftTc {
-    //     int64 view_number = 1;
-    //     repeated int64 high_qc_view_number = 2;
-    //     repeated Signature signature = 3;
-    // }
-    protocol::XbftTc tc;
-    tc.set_view_number(10);
-    tc.add_high_qc_view_number(10);
-    tc.add_high_qc_view_number(10);
-    tc.add_high_qc_view_number(10);
-    tc.add_high_qc_view_number(10);
-    protocol::Signature sig1;
-    sig1.set_public_key("pubkey 1");
-    *tc.add_signature() = sig1;
-
-    protocol::Signature sig2;
-    sig2.set_public_key("pubkey 2");
-    *tc.add_signature() = sig2;
-
-    protocol::Signature sig3;
-    sig3.set_public_key("pubkey 3");
-    *tc.add_signature() = sig3;
-
-    protocol::Signature sig4;
-    sig4.set_public_key("pubkey 4");
-    *tc.add_signature() = sig4;
-
-    auto xtc = std::make_shared<xbft::XbftTc>(tc, keyTool);
+    // tc verify false
+    keyTool->m_verify = toolMock::verifyFalse;
+    auto xtc2 = std::make_shared<xbft::XbftTc>(tc, keyTool);
     ASSERT_TRUE(xtc != nullptr);
 
-    xbft::XbftValidatorSet validator;
-    protocol::ValidatorSet validatorsSet;
-    validatorsSet.add_validators()->set_address("test addr 1");
-    validatorsSet.add_validators()->set_address("test addr 2");
-    validatorsSet.add_validators()->set_address("test addr 3");
-    validatorsSet.add_validators()->set_address("test addr 4");
-    validator.Set(validatorsSet);
+    xbft::XbftValidatorSet validator2;
+    validator2.Update("address-4", 4);
+    validator2.Update("address-5", 5);
+    validator2.Update("address-6", 6);
+    validator2.Update("address-7", 7);
 
-    EXPECT_EQ(xtc->IsValid(validator, validator.GetQuorumSize()), false);
+    EXPECT_EQ(xtc->IsValid(validator2, validator.GetQuorumSize()), false);
 }
 
 TEST_F(XbftTcTest, IsValidHighQcNotEqualSigFalse) {
-    auto keyTool = std::make_shared<xbft::KeyToolInterface>();
+    auto keyTool = Tool::CreateKeyTool();
     ASSERT_TRUE(keyTool != nullptr);
-
-    keyTool->Verify = verifyTrue;
-    keyTool->PublicKeyToAddr = pubKeyToAddress;
 
     // message XbftTc {
     //     int64 view_number = 1;
@@ -160,29 +98,25 @@ TEST_F(XbftTcTest, IsValidHighQcNotEqualSigFalse) {
     tc.add_high_qc_view_number(10);
     tc.add_high_qc_view_number(10);
     protocol::Signature sig1;
-    sig1.set_public_key("pubkey 1");
+    sig1.set_public_key("pub-1");
     *tc.add_signature() = sig1;
 
     auto xtc = std::make_shared<xbft::XbftTc>(tc, keyTool);
     ASSERT_TRUE(xtc != nullptr);
 
     xbft::XbftValidatorSet validator;
-    protocol::ValidatorSet validatorsSet;
-    validatorsSet.add_validators()->set_address("test addr 1");
-    validatorsSet.add_validators()->set_address("test addr 2");
-    validatorsSet.add_validators()->set_address("test addr 3");
-    validatorsSet.add_validators()->set_address("test addr 4");
-    validator.Set(validatorsSet);
+    validator.Update("address-0", 0);
+    validator.Update("address-1", 1);
+    validator.Update("address-2", 2);
+    validator.Update("address-3", 3);
 
     EXPECT_EQ(xtc->IsValid(validator, validator.GetQuorumSize()), false);
 }
 
-TEST_F(XbftTcTest, IsValidCanNotFindValidatorFalse) {
-    auto keyTool = std::make_shared<xbft::KeyToolInterface>();
+TEST_F(XbftTcTest, IsValidVerifyFalse) {
+    auto keyTool = Tool::CreateKeyTool();
     ASSERT_TRUE(keyTool != nullptr);
-
-    keyTool->Verify = verifyTrue;
-    keyTool->PublicKeyToAddr = pubKeyToAddress;
+    keyTool->m_verify = toolMock::verifyFalse;
 
     // message XbftTc {
     //     int64 view_number = 1;
@@ -195,32 +129,30 @@ TEST_F(XbftTcTest, IsValidCanNotFindValidatorFalse) {
     tc.add_high_qc_view_number(10);
     tc.add_high_qc_view_number(10);
     tc.add_high_qc_view_number(10);
+    protocol::Signature sig0;
+    sig0.set_public_key("pub-0");
+    *tc.add_signature() = sig0;
+
     protocol::Signature sig1;
-    sig1.set_public_key("pubkey 1");
+    sig1.set_public_key("pub-1");
     *tc.add_signature() = sig1;
 
     protocol::Signature sig2;
-    sig2.set_public_key("pubkey 2");
+    sig2.set_public_key("pub-2");
     *tc.add_signature() = sig2;
 
     protocol::Signature sig3;
-    sig3.set_public_key("pubkey 6");
+    sig3.set_public_key("pub-3");
     *tc.add_signature() = sig3;
 
-    protocol::Signature sig4;
-    sig4.set_public_key("pubkey 7");
-    *tc.add_signature() = sig4;
-
+    // tc verify true
     auto xtc = std::make_shared<xbft::XbftTc>(tc, keyTool);
     ASSERT_TRUE(xtc != nullptr);
 
     xbft::XbftValidatorSet validator;
-    protocol::ValidatorSet validatorsSet;
-    validatorsSet.add_validators()->set_address("test addr 1");
-    validatorsSet.add_validators()->set_address("test addr 2");
-    validatorsSet.add_validators()->set_address("test addr 3");
-    validatorsSet.add_validators()->set_address("test addr 4");
-    validator.Set(validatorsSet);
-
+    validator.Update("address-0", 0);
+    validator.Update("address-1", 1);
+    validator.Update("address-2", 2);
+    validator.Update("address-3", 3);
     EXPECT_EQ(xtc->IsValid(validator, validator.GetQuorumSize()), false);
 }

@@ -218,12 +218,12 @@ bool XbftNode::CheckQc(const XbftQcPointer &cr_selfQc) const {
     for (int i = 0; i < protoQc.signatures_size(); i++) {
         const protocol::Signature &sig = protoQc.signatures(i);
 
-        std::string addr = mp_keyTool->PublicKeyToAddr(sig.public_key());
+        std::string addr = mp_keyTool->m_publicKeyToAddr(sig.public_key());
         if (-1 == m_validators.QueryId(addr)) {
             LOG_WARN("Cann't find the tc'validator from list");
             continue;
         }
-        if (!mp_keyTool->Verify(protoValueStr, sig.sign_data(), sig.public_key())) {
+        if (!mp_keyTool->m_verify(protoValueStr, sig.sign_data(), sig.public_key())) {
             LOG_WARN("Failed to verify the tc's signature");
             continue;
         }

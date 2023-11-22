@@ -39,20 +39,20 @@ public:
     ~XbftEngine();
 
 public:
+    std::string GetEngineName();
+    std::string GetEngineVersion();
     bool StartEngine(std::shared_ptr<NodeInfoInterface> p_nodeInfo);
 
 public:
-    std::string GetEngineName();
-    std::string GetEngineVersion();
-
     void Rotate();
     bool Propose(std::shared_ptr<ConsData> p_consData);
     void Recv(const std::string &cr_consMsg, std::shared_ptr<KeyToolInterface> p_keyTool);
-    bool IsLeader();
 
+    bool IsLeader();
     std::string GetLatestProof();
     int64_t GetViewNumber();
-
+    bool IsViewActive();
+    size_t GetQuorumSize();
 
 private:
     std::shared_ptr<XbftConsensus> mp_consensus;

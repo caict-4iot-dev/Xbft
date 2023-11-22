@@ -22,7 +22,7 @@
 
 #include "ConsEngine.h"
 #include "XbftEngine.h"
-
+#include <memory>
 
 namespace xbft {
 std::shared_ptr<BftEngine> CreateXbftEngine(std::shared_ptr<NetInterface> p_net,
@@ -33,6 +33,47 @@ std::shared_ptr<BftEngine> CreateXbftEngine(std::shared_ptr<NetInterface> p_net,
         return nullptr;
     }
     return engine;
+}
+
+void Rotate(std::shared_ptr<BftEngine> p_engine) {
+    std::shared_ptr<XbftEngine> xbftEngine = std::static_pointer_cast<XbftEngine>(p_engine);
+    xbftEngine->Rotate();
+}
+
+bool Propose(std::shared_ptr<BftEngine> p_engine, std::shared_ptr<ConsData> p_consData) {
+    std::shared_ptr<XbftEngine> xbftEngine = std::static_pointer_cast<XbftEngine>(p_engine);
+    return xbftEngine->Propose(p_consData);
+}
+
+void Recv(
+    std::shared_ptr<BftEngine> p_engine, const std::string &cr_consMsg, std::shared_ptr<KeyToolInterface> p_keyTool) {
+    std::shared_ptr<XbftEngine> xbftEngine = std::static_pointer_cast<XbftEngine>(p_engine);
+    xbftEngine->Recv(cr_consMsg, p_keyTool);
+}
+
+bool IsLeader(std::shared_ptr<BftEngine> p_engine) {
+    std::shared_ptr<XbftEngine> xbftEngine = std::static_pointer_cast<XbftEngine>(p_engine);
+    return xbftEngine->IsLeader();
+}
+
+std::string GetLatestProof(std::shared_ptr<BftEngine> p_engine) {
+    std::shared_ptr<XbftEngine> xbftEngine = std::static_pointer_cast<XbftEngine>(p_engine);
+    return xbftEngine->GetLatestProof();
+}
+
+int64_t GetViewNumber(std::shared_ptr<BftEngine> p_engine) {
+    std::shared_ptr<XbftEngine> xbftEngine = std::static_pointer_cast<XbftEngine>(p_engine);
+    return xbftEngine->GetViewNumber();
+}
+
+bool IsViewActive(std::shared_ptr<BftEngine> p_engine) {
+    std::shared_ptr<XbftEngine> xbftEngine = std::static_pointer_cast<XbftEngine>(p_engine);
+    return xbftEngine->IsViewActive();
+}
+
+size_t GetQuorumSize(std::shared_ptr<BftEngine> p_engine) {
+    std::shared_ptr<XbftEngine> xbftEngine = std::static_pointer_cast<XbftEngine>(p_engine);
+    return xbftEngine->GetQuorumSize();
 }
 
 }  // namespace xbft

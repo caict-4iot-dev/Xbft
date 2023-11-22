@@ -16,27 +16,26 @@
  *  limitations under the License.
  *
  * @author: maxufeng@caict.ac.cn
- * @date: 2023-11-17 09:49:05
- * @file: LoggerTest.cpp
+ * @date: 2023-11-17 15:07:02
+ * @file: XbftNodeTreeTest.h
  */
 
 
-#include "LoggerTest.h"
-#include "Logger.h"
-#include <filesystem>
+#ifndef __XBFTNODETREE_TEST_H__
+#define __XBFTNODETREE_TEST_H__
 
-TEST_F(LoggerTest, InitializeGlog) {
-    std::string path = "./testlog/";
-    utils::Logger::InitializeGlog(path, utils::LOG_LEVEL_TRACE, "xbft");
-    ASSERT_EQ(utils::Logger::ms_logLevel, utils::LOG_LEVEL_TRACE);
-    LOG_INFO("this is test line");
-    EXPECT_TRUE(std::filesystem::exists(path));
-    utils::Logger::Exit();
-    std::filesystem::remove_all(path);
-}
+#include <gtest/gtest.h>
+#include <memory>
 
-TEST_F(LoggerTest, SetLogLevel) {
-    int log_level = 0;
-    utils::Logger::SetLogLevel(log_level);
-    ASSERT_EQ(utils::Logger::ms_logLevel, log_level);
-}
+namespace xbft {
+class XbftNode;
+class KeyToolInterface;
+}  // namespace xbft
+
+class XbftNodeTreeTest : public testing::Test {
+public:
+    static std::shared_ptr<xbft::XbftNode> CreateLeafNode(int64_t sequence, int64_t viewNumber,
+        const std::string &cr_rootHash, std::shared_ptr<xbft::KeyToolInterface> p_keyTool);
+};
+
+#endif

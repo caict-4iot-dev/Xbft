@@ -33,7 +33,6 @@ public:
     XbftNodeTree();
     ~XbftNodeTree();
 
-    bool Initialize(XbftNodePointer p_rootNode);
     XbftNodePointer GetNode(const std::string &cr_hash);        // Get node pointer by hash
     XbftNodePointer GetParentNode(const std::string &cr_hash);  // Get parent Node by hash
     bool AppendNode(const XbftNodePointer &cp_node);
