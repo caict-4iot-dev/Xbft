@@ -1,0 +1,20 @@
+node:
+    private_key: ''
+  interval: 10
+consensus:
+  validators: 
+    - ''
+    - ''
+    - ''
+    - ''
+  interval: 100
+net:
+  port: 1230
+  bootnode:
+    - 
+    - '127.0.0.1:12323'
+logger:
+  expire_days: 10
+  level: DEBUG|WARNING|ERROR|FATAL
+  size_capacity: 10
+  path: log/bif.log
