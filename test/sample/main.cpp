@@ -41,9 +41,9 @@ void GenerateKey() {
     auto pub = key->GetPublicKey();
     auto address = common::PublicKeyToAddress(pub);
     std::cout << "[" << std::endl;
-    std::cout << "    pri:" << utils::String::BinToHexString(pri) << std::endl;
-    std::cout << "    pub:" << utils::String::BinToHexString(pub) << std::endl;
-    std::cout << "    address:" << utils::String::BinToHexString(address) << std::endl;
+    std::cout << "    pri:" << pri << std::endl;
+    std::cout << "    pub:" << pub << std::endl;
+    std::cout << "    address:" << address << std::endl;
     std::cout << "]" << std::endl;
 }
 

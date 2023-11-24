@@ -44,7 +44,8 @@ XbftConsensus::~XbftConsensus() = default;
 bool XbftConsensus::Initialize(std::shared_ptr<KeyInterface> p_keyInfo,
     const std::vector<std::string> &cr_validatorsVec, int64_t viewNumber, const std::string &cr_lastProof) {
     do {
-        LOG_INFO("XbftConsensus::Initialize m_viewNumber:%ld", m_viewNumber);
+        LOG_INFO(
+            "XbftConsensus::Initialize m_viewNumber:%ld address:%s", m_viewNumber, p_keyInfo->GetAddress().c_str());
         m_viewNumber = viewNumber;
         mp_replicaKey = p_keyInfo;
 

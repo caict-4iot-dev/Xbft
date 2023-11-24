@@ -38,7 +38,7 @@ NodeInfo::NodeInfo() {
 }
 
 bool NodeInfo::LoadConfig() {
-    std::string pri = utils::String::HexStringToBin(common::NodeConfig::m_priKey);
+    std::string pri = common::NodeConfig::m_priKey;
     mp_key = std::make_shared<common::Ed25519>(pri);
     if (mp_key == nullptr) {
         LOG_ERROR("NodeInfo::LoadConfig Ed25519 nullptr");

@@ -23,6 +23,7 @@
 
 #include "Ed25519.h"
 #include "Random.h"
+#include "utils/Strings.h"
 #include <ed25519/ed25519.h>
 
 namespace common {
@@ -46,32 +47,33 @@ std::string Ed25519::Sign(const std::string &cr_input) {
 }
 
 std::string Ed25519::GetPublicKey() {
-    return m_publickKey;
+    return utils::String::BinToHexString(m_publickKey);
 }
 
 std::string Ed25519::GetPrivateKey() {
-    return m_privateKey;
+    return utils::String::BinToHexString(m_privateKey);
 }
 
 std::string Ed25519::GetAddress() {
-    return PublicKeyToAddress(m_publickKey);
+    return PublicKeyToAddress(GetPublicKey());
 }
 
 void Ed25519::from(const std::string &cr_sPrivateKey) {
-    m_privateKey = cr_sPrivateKey;
+    m_privateKey = utils::String::HexStringToBin(cr_sPrivateKey);
     m_publickKey.resize(32);
     ed25519_publickey((const unsigned char *)m_privateKey.c_str(), (unsigned char *)m_publickKey.c_str());
 }
 
 bool Verify(const std::string &cr_publicKey, const std::string &cr_inputMsg, const std::string &cr_sig) {
-    int res = ed25519_sign_open((unsigned char *)cr_inputMsg.c_str(), cr_inputMsg.size(),
-        (unsigned char *)cr_publicKey.c_str(), (unsigned char *)cr_sig.c_str());
+    auto pub = utils::String::HexStringToBin(cr_publicKey);
+    int res = ed25519_sign_open((unsigned char *)cr_inputMsg.c_str(), cr_inputMsg.size(), (unsigned char *)pub.c_str(),
+        (unsigned char *)cr_sig.c_str());
     return 0 == res;
 }
 
 std::string PublicKeyToAddress(const std::string &cr_publicKey) {
-    if (cr_publicKey.size() > 20)
-        return cr_publicKey.substr(0, 20);
+    if (cr_publicKey.size() > 40)
+        return cr_publicKey.substr(0, 40);
     return "";
 }
 

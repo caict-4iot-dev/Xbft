@@ -142,6 +142,8 @@ void Network::sendMsg() {
         // 设置对方地址
         std::vector<sockaddr_in> sockaddrList;
         for (size_t i = 0; i < ipDest.size(); i++) {
+            LOG_INFO("send peerAddr:%s", ipDest[i].c_str());
+
             common::StringVector ip_array = common::String::Strtok(ipDest[i], ':');
             if (ip_array.size() <= 1) {
                 LOG_ERROR("[net] [bootnode] [consensus_network] config error...");
