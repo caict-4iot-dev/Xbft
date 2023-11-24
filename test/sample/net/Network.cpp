@@ -123,6 +123,7 @@
 		}
 
 		//发送数据到对方节点
+		LOG_INFO("send data %s, size %d, ", cr_value, cr_value.size());
 		for(auto peerAddr: sockaddrList){
 			sendto(m_nodeSocket, cr_value.c_str(), cr_value.size() + 1, 0, (sockaddr*)&peerAddr, sizeof(peerAddr));
 		}
