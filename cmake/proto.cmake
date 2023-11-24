@@ -10,7 +10,7 @@ endif()
 
 
 
-file(GLOB_RECURSE PROTOS ${CMAKE_SOURCE_DIR}/lib/protos/*.proto ${CMAKE_SOURCE_DIR}/test/sample/proto/*.proto)
+file(GLOB_RECURSE PROTOS ${CMAKE_SOURCE_DIR}/lib/protos/*.proto ${CMAKE_SOURCE_DIR}/test/sample/protos/*.proto)
 
 set(PROTO_SRC "")
 set(PROTO_HDRS "")

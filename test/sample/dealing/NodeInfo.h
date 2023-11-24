@@ -16,40 +16,46 @@
  *  limitations under the License.
  *
  * @author: maxufeng@caict.ac.cn
- * @date: 2023-11-22 17:42:27
- * @file: StoreValue.h
+ * @date: 2023-11-23 17:03:35
+ * @file: NodeInfo.h
  */
 
-#ifndef __STORE_VALUE_H__
-#define __STORE_VALUE_H__
-
-/*
-namespace dealing {
+#ifndef __NODEINFO_H__
+#define __NODEINFO_H__
 
 #include "ConsEngine.h"
+#include <memory>
 #include <string>
+#include <vector>
 
-class StoreValue : public common::Singleton<StoreValue> {
-    friend class utils::Singleton<StoreValue>;
+
+namespace dealing {
+
+class NodeInfo : public xbft::NodeInfoInterface {
+public:
+    NodeInfo();
+    ~NodeInfo() = default;
+
+    bool LoadConfig();
+
+    std::vector<std::string> GetValidators() { return m_validators; };
+    std::string GetLastProof() { return m_lastProof; };
+    int64_t GetLastViewNumber() { return m_viewNumber; };
+    std::shared_ptr<xbft::KeyInterface> GetKeyInfo() { return mp_key; };
+    int64_t GetSendMsgInterval() { return m_interval; };
 
 public:
-    StoreValue();
-    int64_t GetMaxSeq();
-    std::string GetLastProof();
-    std::string GetPreviousHash();
-    void Store(std::shared_ptr<xbft::ConsData> p_consensus, const std::string &cr_proof);
-
-    void Dealing(size_t index);
+    int64_t GetBlockInterVal() { return m_blockInterVal; };
 
 private:
-    int64_t m_seq;
+    std::shared_ptr<xbft::KeyInterface> mp_key;
+    int64_t m_interval;
+    int64_t m_blockInterVal;
     std::string m_lastProof;
-    std::string m_previousHash;
+    int64_t m_viewNumber;
+    std::vector<std::string> m_validators;
 };
-
-static void ValueCommited(std::shared_ptr<xbft::ConsData> p_consData, const std::string &cr_proof);
-
 }  // namespace dealing
-*/
+
 
 #endif

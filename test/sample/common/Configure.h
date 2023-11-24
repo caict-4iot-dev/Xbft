@@ -40,7 +40,7 @@ public:
     static bool LoadConfig(const YAML::Node &cr_config);
 
 public:
-    static std::vector<std::string> m_priKeys;
+    static std::string m_priKey;
     static int64_t m_interval;
 };
 

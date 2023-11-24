@@ -68,7 +68,7 @@ bool GetStrongRandBytes(std::string &out) {
         return false;
 
     std::string input((char *)buf, 64);
-    crypto::Sha256::Crypto(input, out);
+    utils::Sha256::Crypto(input, out);
     return true;
 }
 }  // namespace common

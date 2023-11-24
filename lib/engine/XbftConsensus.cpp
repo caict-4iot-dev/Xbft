@@ -304,7 +304,7 @@ XbftMsgPointer XbftConsensus::newVote(
     p_vote->set_replica_id(m_replicaId);
     protocol::XbftQcValue *qcValue = p_vote->mutable_qc_content();
 
-    std::string node_hash = crypto::Sha256::Crypto(propose.node().SerializeAsString());
+    std::string node_hash = utils::Sha256::Crypto(propose.node().SerializeAsString());
     qcValue->set_node_hash(node_hash);
     qcValue->set_node_value_hash(cr_nodeValueHash);
     qcValue->set_view_number(propose.node().view_number());
@@ -622,7 +622,8 @@ bool XbftConsensus::update(const XbftNodePointer &p_blk2, const XbftQcPointer &p
 
 
         mp_exec = p_blk;
-        LOG_INFO("Exec node:%s, lock node:%s", mp_exec->GetDesc().c_str(), mp_lock->GetDesc().c_str());
+        LOG_INFO(
+            "id(%d) Exec node:%s, lock node:%s", m_replicaId, mp_exec->GetDesc().c_str(), mp_lock->GetDesc().c_str());
         return true;
     } while (false);
 

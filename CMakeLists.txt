@@ -36,6 +36,7 @@ set(XBFT_DEPENDS_LIBS
     crypto
     ed25519
     glog
+    yaml-cpp
 )
 
 add_compile_options(-Wall -Werror -fpermissive -Woverloaded-virtual -D_GLIBCXX_USE_CXX11_ABI=0 -DASIO_STANDALONE)
@@ -124,10 +125,7 @@ set(XBFT_ROOT_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 set(XBFT_INCLUDE_DIR
     ${XBFT_3RD_LIB}/include
     ${XBFT_ROOT_DIR}/include
-    ${XBFT_SRC_DIR}/protos
-    ${XBFT_SRC_DIR}/utils
-    ${XBFT_SRC_DIR}/crypto
-    ${XBFT_SRC_DIR}/engine
+    ${XBFT_ROOT_DIR}/include/utils
 )
 
 link_directories(

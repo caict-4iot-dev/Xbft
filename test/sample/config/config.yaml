@@ -1,30 +1,25 @@
 node:
-    private_key: ''
-  interval: 10
+  private_key: '1031a1213f8ef7517323b7148f4ebf5868e1ffec8f7378ebba29e0150df4ae80'
+  interval: 1000
 consensus:
   validators: 
-    - ''
-    - ''
-    - ''
-    - ''
-  interval: 100
+    - '562052b1556b50ef69c3599982eab4b0b598dff4'
+    - 'da13d50517e11154f0f078abfa4a36d3c57ef694'
+    - '3dfae1b75b6cd50601667222c5380ba45c629cf4'
+    - '26444cb06f702a345c8c701b520da7f7ef578164'
+  interval: 1000
 net:
   port: 54002
   bootnode:
     - 
       consensus_network: '127.0.0.1:54002'
-      address: 'did:bid:efFPx2KuK5nvVvrAz2raQpC4AKBj5pdA'
+      address: '562052b1556b50ef69c3599982eab4b0b598dff4'
     - 
       consensus_network: '127.0.0.1:54003'
-      address: 'did:bid:efva9sKqkqhnxp3UpgdypxEorriusPPd'
+      address: 'da13d50517e11154f0f078abfa4a36d3c57ef694'
     - 
       consensus_network: '127.0.0.1:54004'
-      address: 'did:bid:efGKDE63DSDjmUHynCdCzYN3hScC1TyQ'
+      address: '3dfae1b75b6cd50601667222c5380ba45c629cf4'
     - 
       consensus_network: '127.0.0.1:54005'
-      address: 'did:bid:ef6gjB4buZFENM2jXkCP2HefuP9SGUWv'
-logger:
-  expire_days: 10
-  level: DEBUG|WARNING|ERROR|FATAL
-  size_capacity: 10
-  path: log/bif.log
+      address: '26444cb06f702a345c8c701b520da7f7ef578164'

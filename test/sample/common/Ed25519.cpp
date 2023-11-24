@@ -25,7 +25,6 @@
 #include "Random.h"
 #include <ed25519/ed25519.h>
 
-/*
 namespace common {
 Ed25519::Ed25519() {
     GetStrongRandBytes(m_privateKey);
@@ -45,11 +44,17 @@ std::string Ed25519::Sign(const std::string &cr_input) {
     output.append((const char *)sig, sigLen);
     return output;
 }
-const std::string Ed25519::GetPublicKey() const {
+
+std::string Ed25519::GetPublicKey() {
     return m_publickKey;
 }
-const std::string Ed25519::GetPrivateKey() const {
+
+std::string Ed25519::GetPrivateKey() {
     return m_privateKey;
+}
+
+std::string Ed25519::GetAddress() {
+    return PublicKeyToAddress(m_publickKey);
 }
 
 void Ed25519::from(const std::string &cr_sPrivateKey) {
@@ -71,4 +76,3 @@ std::string PublicKeyToAddress(const std::string &cr_publicKey) {
 }
 
 }  // namespace common
-*/

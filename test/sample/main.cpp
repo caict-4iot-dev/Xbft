@@ -20,53 +20,83 @@
  * @file: main.cpp
  */
 
-#include "common/Configure.h"
-#include "common/Singleton.h"
-#include "dealing/StoreValue.h"
-#include "common/ThreadPool.h"
-#include "net/Network.h"
-#include "../../lib/utils/Logger.h"
+#include "BlockChain.h"
+#include "Configure.h"
+#include "ConsEngine.h"
+#include "Ed25519.h"
+#include "ExitHandler.h"
+#include "Logger.h"
+#include "Network.h"
+#include "Singleton.h"
+#include "utils/Strings.h"
+#include <atomic>
+#include <iostream>
+#include <string>
+
+
+std::atomic_bool common::ExitHandler::ms_exitFlag = false;
+
+void GenerateKey() {
+    auto key = std::make_shared<common::Ed25519>();
+    auto pri = key->GetPrivateKey();
+    auto pub = key->GetPublicKey();
+    auto address = common::PublicKeyToAddress(pub);
+    std::cout << "[" << std::endl;
+    std::cout << "    pri:" << utils::String::BinToHexString(pri) << std::endl;
+    std::cout << "    pub:" << utils::String::BinToHexString(pub) << std::endl;
+    std::cout << "    address:" << utils::String::BinToHexString(address) << std::endl;
+    std::cout << "]" << std::endl;
+}
 
 int main(int argc, char *argv[]) {
     if (argc != 1) {
         // 添加ed25519生成私钥地址小工具
+        std::string cmd = argv[1];
+        if (cmd == "key") {
+            GenerateKey();
+        }
         return 0;
     }
 
     // 加载配置
-    if (!common::Configure::LoadConfig("./config/config.yaml")) {
+    if (!common::Configure::LoadConfig("./config.yaml")) {
         return -1;
     }
     if (!utils::Logger::InitializeGlog(common::LogConfig::ms_path, utils::LOG_LEVEL_TRACE, "Xbft-sample")) {
         return -1;
     };
 
-    // 启动网络模块
-    net::Network &network = net::Network::Instance();
-    network.Initialize();
-    /*
+    common::ExitHandler::ResgisterSignal();
 
-    // 启动数据处理模块
-    dealing::StoreValue::InitInstance();
+    net::Network::InitInstance();
+    dealing::BlockChain::InitInstance();
 
-    // 启动业务线程 根据node个数启动对应个数的线程
-    size_t nodeNum = common::NodeConfig::m_priKeys.size();
-    auto nodePool = std::make_shared<common::ThreadPool>();
-    if (nodePool == nullptr) {
-        return -1;
-    }
-    nodePool->InitThreadNum(nodeNum);
+    do {
+        // 启动网络模块
+        net::Network &network = net::Network::Instance();
+        if (!network.Initialize()) {
+            LOG_ERROR("Failed to initialize net");
+            break;
+        }
 
-    //添加任务
+        // 启动数据处理模块
+        dealing::BlockChain &blockChain = dealing::BlockChain::Instance();
+        if (!blockChain.Initialize(network.mp_net)) {
+            LOG_ERROR("Failed to initialize blockChain");
+            break;
+        }
 
-    while (nodePool->GetSize() == nodeNum) {
-        // 检测业务线程异常时退出循环
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000 * 3));
-    }
+        while (!common::ExitHandler::GetExitFlag()) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
 
-    dealing::StoreValue::ExitInstance();
+        blockChain.Exit();
+        network.Exit();
 
-    */
+    } while (false);
+
+    dealing::BlockChain::ExitInstance();
+    net::Network::ExitInstance();
 
     return 0;
 }

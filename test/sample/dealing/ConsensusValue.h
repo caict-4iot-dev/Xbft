@@ -26,7 +26,6 @@
 #include "ConsEngine.h"
 #include "chain.pb.h"
 
-/*
 namespace dealing {
 class ConsensusValue : public xbft::ConsData {
 public:
@@ -46,6 +45,12 @@ public:
     std::string GetHash();
     std::string GetStringValue();
 
+    void SetCloseTime(int64_t time);
+    void SetSeq(int64_t seq);
+    void SeqPreviousProof(const std::string &cr_previousProof);
+    void SetPreviousHash(const std::string &cr_previousHash);
+    void SetValue(const std::string &cr_value);
+
 private:
     int64_t m_closeTime;
     int64_t m_seq;
@@ -58,10 +63,9 @@ private:
     protocol::ConsensusValue m_pbValue;
 };
 
-static bool ConsensusValueCheck(std::shared_ptr<ConsData> p_consData);
-static std::shared_ptr<ConsData> ParseStringToConsData(const std::string &cr_input);
+bool ConsensusValueCheck(std::shared_ptr<xbft::ConsData> p_consData);
+std::shared_ptr<xbft::ConsData> ParseStringToConsData(const std::string &cr_input);
 
 }  // namespace dealing
 
-*/
 #endif

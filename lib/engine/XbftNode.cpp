@@ -43,7 +43,7 @@ XbftNode::XbftNode(int64_t viewNumber, int64_t sequence, std::shared_ptr<KeyTool
     m_node.set_parent_node_hash("");
     m_node.set_view_number(m_viewNumber);
     m_node.set_sequence(m_sequence);
-    m_hash = crypto::Sha256::Crypto(m_node.SerializeAsString());
+    m_hash = utils::Sha256::Crypto(m_node.SerializeAsString());
 
     m_startTime = utils::Timestamp::HighResolution();
     m_endTime = 0;
@@ -69,7 +69,7 @@ XbftNode::XbftNode(int64_t viewNumber, int64_t sequence, const protocol::XbftQc 
     m_node.set_view_number(m_viewNumber);
     m_node.set_sequence(m_sequence);
     *m_node.mutable_previous_qc() = cr_protoQc;
-    m_hash = crypto::Sha256::Crypto(m_node.SerializeAsString());
+    m_hash = utils::Sha256::Crypto(m_node.SerializeAsString());
 
     m_startTime = utils::Timestamp::HighResolution();
     m_endTime = 0;
@@ -88,7 +88,7 @@ XbftNode::XbftNode(const protocol::XbftNode &cr_node, std::shared_ptr<KeyToolInt
 
     mp_qc = std::make_shared<XbftQc>(cr_node.previous_qc());
     m_node = cr_node;
-    m_hash = crypto::Sha256::Crypto(m_node.SerializeAsString());
+    m_hash = utils::Sha256::Crypto(m_node.SerializeAsString());
     m_startTime = utils::Timestamp::HighResolution();
     m_endTime = 0;
     m_lastProposeTime = 0;

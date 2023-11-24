@@ -63,22 +63,14 @@ void Configure::Print(YAML::Node config) {
         std::cout << it.first << it.second << std::endl;
 }
 
-std::vector<std::string> NodeConfig::m_priKeys;
+std::string NodeConfig::m_priKey;
 int64_t NodeConfig::m_interval;
 
 bool NodeConfig::LoadConfig(const YAML::Node &cr_config) {
     bool ret = true;
     try {
         // load logger configure
-        auto pri0 = cr_config["node"]["node-0"]["private_key"].as<std::string>();
-        NodeConfig::m_priKeys.push_back(pri0);
-        auto pri1 = cr_config["node"]["node-1"]["private_key"].as<std::string>();
-        NodeConfig::m_priKeys.push_back(pri1);
-        auto pri2 = cr_config["node"]["node-2"]["private_key"].as<std::string>();
-        NodeConfig::m_priKeys.push_back(pri2);
-        auto pri3 = cr_config["node"]["node-3"]["private_key"].as<std::string>();
-        NodeConfig::m_priKeys.push_back(pri3);
-
+        NodeConfig::m_priKey = cr_config["node"]["private_key"].as<std::string>();
         NodeConfig::m_interval = cr_config["node"]["interval"].as<int>();
 
         std::cout << "Load Node configure successful." << std::endl;

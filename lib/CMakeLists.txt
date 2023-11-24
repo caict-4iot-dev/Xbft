@@ -23,7 +23,7 @@ set_target_properties(xbft PROPERTIES OUTPUT_NAME "xbft")
 set_target_properties(xbft PROPERTIES CLEAN_DIRECT_OUTPUT 1)
 
 foreach(_target xbft_static xbft)
-    target_include_directories(${_target} PUBLIC ${XBFT_INCLUDE_DIR})
+    target_include_directories(${_target} PUBLIC ${XBFT_INCLUDE_DIR} ${XBFT_SRC_DIR}/protos)
     add_dependencies(${_target} generate_proto)
     target_compile_features(${_target} PUBLIC cxx_std_17)
 

@@ -30,7 +30,7 @@ XbftQc::XbftQc(int64_t viewNumber, int64_t sequence, const std::string &cr_nodeV
     m_qc.mutable_qc_content()->set_view_number(viewNumber);
     m_qc.mutable_qc_content()->set_sequence(sequence);
     m_qc.mutable_qc_content()->set_node_value_hash(cr_nodeValueHash);
-    m_contentHash = crypto::Sha256::Crypto(m_qc.qc_content().SerializeAsString());
+    m_contentHash = utils::Sha256::Crypto(m_qc.qc_content().SerializeAsString());
 }
 
 XbftQc::XbftQc(const protocol::XbftQc &cr_protoQc) {
@@ -43,7 +43,7 @@ bool XbftQc::Add(int64_t replicaId, const protocol::XbftQcValue &cr_qcValue, con
     if (!m_qc.has_qc_content()) {
         *m_qc.mutable_qc_content() = cr_qcValue;
         *m_qc.add_signatures() = cr_sig;
-        m_contentHash = crypto::Sha256::Crypto(m_qc.qc_content().SerializeAsString());
+        m_contentHash = utils::Sha256::Crypto(m_qc.qc_content().SerializeAsString());
         return true;
     }
 

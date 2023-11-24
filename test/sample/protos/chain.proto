@@ -1,7 +1,7 @@
 syntax = "proto3";
 package protocol;
 
-message ConsensusValue{
+message ConsensusValue {
 	int64 close_time = 1;
 	int64 ledger_seq = 2;
     bytes previous_hash = 3;

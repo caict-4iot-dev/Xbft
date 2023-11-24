@@ -28,7 +28,7 @@
 #include <openssl/sha.h>
 #include <string>
 
-namespace crypto {
+namespace utils {
 class Hash {
 public:
     Hash() = default;
@@ -57,6 +57,6 @@ public:
 private:
     SHA256_CTX m_ctx_;
 };
-}  // namespace crypto
+}  // namespace utils
 
 #endif  //_SHA256_H_

@@ -22,7 +22,7 @@
 
 #include "Sha256.h"
 
-namespace crypto {
+namespace utils {
 Sha256::Sha256() {
     SHA256_Init(&m_ctx_);
 }
@@ -60,4 +60,4 @@ void Sha256::Crypto(const std::string &cr_input, std::string &r_str) {
     SHA256_Update(&sha256, cr_input.c_str(), cr_input.size());
     SHA256_Final((unsigned char *)r_str.c_str(), &sha256);
 }
-}  // namespace crypto
+}  // namespace utils

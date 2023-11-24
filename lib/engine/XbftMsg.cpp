@@ -37,7 +37,7 @@ XbftMsg::XbftMsg(const protocol::XbftEnv &cr_xbftEnv, std::shared_ptr<KeyToolInt
         m_value = p_keyTool->m_createConsData(strValue);
     }
     m_replicaAddr = GetReplicaAddress(m_xbftEnv);
-    m_hash = crypto::Sha256::Crypto(m_xbftEnv.SerializeAsString());
+    m_hash = utils::Sha256::Crypto(m_xbftEnv.SerializeAsString());
 }
 
 XbftMsg::~XbftMsg() = default;

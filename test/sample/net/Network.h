@@ -22,43 +22,53 @@
 #ifndef NET_NETWORK_H_
 #define NET_NETWORK_H_
 
+#include "Configure.h"
+#include "EventQueue.h"
+#include "Singleton.h"
 #include <iostream>
-#include <string>
-#include "common/Configure.h"
-#include "common/EventQueue.h"
-#include "common/Singleton.h"
-#include <thread>
 #include <map>
+#include <string>
+#include <thread>
+
+
+namespace xbft {
+struct NetInterface;
+}
 
 namespace net {
 
-	class Network : public common::Singleton<net::Network> 
-	{
-		friend class common::Singleton<net::Network>;
-	public:
-		Network();
-		~Network();
+class Network : public common::Singleton<net::Network> {
+    friend class common::Singleton<net::Network>;
 
-        bool Initialize();
-		bool Exit();
-	
-		void SendMsg(const std::string &cr_from, const std::vector<std::string> &cr_dest, const std::string &cr_value);
-		common::EventQueue<std::string> &GetMsgQueue();
+public:
+    Network();
+    ~Network();
 
-	private:
-		void recvMsg();
-		
-	private:
-		int m_nodeSocket; 
+    bool Initialize();
+    bool Exit();
 
-		std::map<std::string, std::string> m_bootnode;
+    void SendMsg(const std::string &cr_from, const std::vector<std::string> &cr_dest, const std::string &cr_value);
+    common::EventQueue<std::string> &GetMsgQueue();
 
-		common::EventQueue<std::string> m_recvMsgQueue;
+    std::shared_ptr<xbft::NetInterface> mp_net;
 
-		std::thread * mp_recvThread;
+private:
+    void recvMsg();
 
-		char * recvBuf;
-	};
-}
+private:
+    int m_nodeSocket;
+
+    std::map<std::string, std::string> m_bootnode;
+
+    common::EventQueue<std::string> m_recvMsgQueue;
+
+    std::thread *mp_recvThread;
+
+    char *recvBuf;
+};
+
+void Send(const std::string &cr_from, const std::vector<std::string> &cr_dest, const std::string &cr_value);
+
+}  // namespace net
 
 #endif

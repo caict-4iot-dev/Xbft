@@ -27,12 +27,12 @@
 
 TEST_F(Sha256Test, HashString) {
     std::string data = "aaa";
-    std::string hash_data1 = crypto::Sha256::Crypto(data);
+    std::string hash_data1 = utils::Sha256::Crypto(data);
     ASSERT_EQ(
         utils::String::BinToHexString(hash_data1), "9834876dcfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0");
 
     std::string hash_data2;
-    crypto::Sha256::Crypto(data, hash_data2);
+    utils::Sha256::Crypto(data, hash_data2);
     ASSERT_EQ(
         utils::String::BinToHexString(hash_data2), "9834876dcfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0");
 }

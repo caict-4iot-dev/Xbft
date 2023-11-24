@@ -23,8 +23,8 @@
 #include "ConsensusValue.h"
 #include "Logger.h"
 #include "Sha256.h"
+#include "Timestamp.h"
 
-/*
 namespace dealing {
 ConsensusValue::ConsensusValue() {
     m_closeTime = 0;
@@ -32,14 +32,14 @@ ConsensusValue::ConsensusValue() {
     m_previousProof = "";
     m_previousHash = "";
     m_hash = "";
-    m_stringValue = "";
     m_value = "";
+    m_strValue = "";
 }
 
 ConsensusValue::ConsensusValue(const std::string &cr_strValue) {
     m_strValue = cr_strValue;
     m_pbValue.ParseFromString(cr_strValue);
-    m_hash = crypto::Sha256::Crypto(m_strValue);
+    m_hash = utils::Sha256::Crypto(m_strValue);
 
     m_closeTime = m_pbValue.close_time();
     m_seq = m_pbValue.ledger_seq();
@@ -76,7 +76,30 @@ std::string ConsensusValue::GetStringValue() {
     return m_strValue;
 }
 
-bool ConsensusValueCheck(std::shared_ptr<ConsData> p_consData) {
+void ConsensusValue::SetCloseTime(int64_t time) {
+    m_pbValue.set_close_time(time);
+}
+
+void ConsensusValue::SetSeq(int64_t seq) {
+    m_pbValue.set_ledger_seq(seq);
+}
+
+void ConsensusValue::SeqPreviousProof(const std::string &cr_previousProof) {
+    m_pbValue.set_previous_proof(cr_previousProof);
+}
+
+void ConsensusValue::SetPreviousHash(const std::string &cr_previousHash) {
+    m_pbValue.set_previous_hash(cr_previousHash);
+}
+
+void ConsensusValue::SetValue(const std::string &cr_value) {
+    m_pbValue.set_value(cr_value);
+}
+
+/*
+    针对待共识数据结构进行验证；如共识结构高度、共识结构生成时间、待共识数据大小等内容；
+*/
+bool ConsensusValueCheck(std::shared_ptr<xbft::ConsData> p_consData) {
     LOG_INFO("ConsensusValueCheck .......");
     std::shared_ptr<ConsensusValue> consensusValue = std::static_pointer_cast<ConsensusValue>(p_consData);
     if (consensusValue == nullptr) {
@@ -84,7 +107,7 @@ bool ConsensusValueCheck(std::shared_ptr<ConsData> p_consData) {
         return false;
     }
     auto closeTime = consensusValue->GetCloseTime();
-    if (closeTime > utils::TimeStamp::HighResolution()) {
+    if (closeTime > utils::Timestamp::HighResolution()) {
         LOG_ERROR("close time invalid");
         return false;
     }
@@ -98,11 +121,13 @@ bool ConsensusValueCheck(std::shared_ptr<ConsData> p_consData) {
     return true;
 }
 
-std::shared_ptr<ConsData> ParseStringToConsData(const std::string &cr_input) {
+/*
+    共识数据构建，通过string构建consData结构
+*/
+std::shared_ptr<xbft::ConsData> ParseStringToConsData(const std::string &cr_input) {
     LOG_INFO("ParseStringToConsData .......");
     auto cons = std::make_shared<ConsensusValue>(cr_input);
     return cons;
 }
 
 }  // namespace dealing
-*/
