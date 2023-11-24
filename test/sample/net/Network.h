@@ -40,6 +40,10 @@ namespace net {
 class Network : public common::Singleton<net::Network> {
     friend class common::Singleton<net::Network>;
 
+	struct Msg{
+		std::string crValue;
+		std::vector<std::string> crDest;
+	};
 public:
     Network();
     ~Network();
@@ -53,6 +57,7 @@ public:
     std::shared_ptr<xbft::NetInterface> mp_net;
 
 private:
+    void sendMsg();
     void recvMsg();
 
 private:
@@ -60,11 +65,15 @@ private:
 
     std::map<std::string, std::string> m_bootnode;
 
+    common::EventQueue<Msg> m_sendMsgQueue;
     common::EventQueue<std::string> m_recvMsgQueue;
 
+    std::thread *mp_sendThread;
     std::thread *mp_recvThread;
 
-    char *recvBuf;
+    char *mp_recvBuf;
+    
+    bool m_isExit;
 };
 
 void Send(const std::string &cr_from, const std::vector<std::string> &cr_dest, const std::string &cr_value);

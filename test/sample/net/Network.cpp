@@ -30,7 +30,7 @@
 #include <sstream>
 
 namespace net {
-Network::Network() : m_nodeSocket(-1), mp_recvThread(nullptr), recvBuf(nullptr) {}
+Network::Network() : m_nodeSocket(-1), mp_sendThread(nullptr), mp_recvThread(nullptr), mp_recvBuf(nullptr), m_isExit(false) {}
 
 Network::~Network() {}
 
@@ -55,8 +55,10 @@ bool Network::Initialize() {
         return false;
     }
 
-    recvBuf = new char[50 * 1024];
+    mp_recvBuf = new char[50 * 1024];
     mp_recvThread = new std::thread(&Network::recvMsg, this);
+	mp_sendThread = new std::thread(&Network::sendMsg, this);
+
 
     mp_net = std::make_shared<xbft::NetInterface>();
     if (mp_net == nullptr) {
@@ -70,6 +72,7 @@ bool Network::Initialize() {
 }
 
 bool Network::Exit() {
+	m_isExit = true;
     LOG_INFO("Network::Exit");
     // 关闭socket
     close(m_nodeSocket);
@@ -80,76 +83,98 @@ bool Network::Exit() {
         mp_recvThread = nullptr;
     }
 
-    if (recvBuf != nullptr) {
-        delete[] recvBuf;
-        recvBuf = nullptr;
+	if(mp_sendThread != nullptr){
+		mp_sendThread->join();
+		delete mp_sendThread;
+		mp_sendThread = nullptr;
+	}
+
+    if (mp_recvBuf != nullptr) {
+        delete[] mp_recvBuf;
+        mp_recvBuf = nullptr;
     }
 
     LOG_INFO("Network stop [OK]");
     return true;
 }
 
-void Network::SendMsg(
-    const std::string &cr_from, const std::vector<std::string> &cr_dest, const std::string &cr_value) {
-    // 目的地址转化为ip
-    std::vector<std::string> ipDest;
-    bool found = false;
-    for (auto dest : cr_dest) {
-        for (auto node : common::NetConfig::ms_bootnode) {
-            if (node["address"] == dest) {
-                ipDest.push_back(node["consensus_network"]);
-                found = true;
-                break;
-            }
-        }
-    }
+void Network::SendMsg(const std::string &cr_from, const std::vector<std::string> &cr_dest, const std::string &cr_value){
+	Msg msgEvent;
+	msgEvent.crValue = std::move(cr_value);
+	msgEvent.crDest = std::move(cr_dest);
 
-    if (!found) {
-        LOG_ERROR("[net] [bootnode] [address] config error...");
-    }
-
-    // 设置对方地址
-    std::vector<sockaddr_in> sockaddrList;
-    for (size_t i = 0; i < ipDest.size(); i++) {
-        common::StringVector ip_array = common::String::Strtok(ipDest[i], ':');
-        if (ip_array.size() <= 1) {
-            LOG_ERROR("[net] [bootnode] [consensus_network] config error...");
-            continue;
-        }
-
-        sockaddr_in peerAddr;
-        peerAddr.sin_family = AF_INET;
-        peerAddr.sin_port = htons(common::String::ToUint(ip_array[1]));  // 设置对方端口
-        inet_pton(AF_INET, ip_array[0].c_str(), &peerAddr.sin_addr);     // 设置对方IP地址
-
-        sockaddrList.push_back(std::move(peerAddr));
-    }
-
-    // 发送数据到对方节点
-    LOG_INFO("send data %s, size %d, ", cr_value, cr_value.size());
-    for (auto peerAddr : sockaddrList) {
-        sendto(m_nodeSocket, cr_value.c_str(), cr_value.size() + 1, 0, (sockaddr *)&peerAddr, sizeof(peerAddr));
-    }
+	LOG_INFO("SendMsg data %s, size %d, ", cr_value, cr_value.size());
+	m_sendMsgQueue.Push(msgEvent);
 }
-
 
 common::EventQueue<std::string> &Network::GetMsgQueue() {
     return m_recvMsgQueue;
 }
 
+void Network::sendMsg(){
+	while(!m_isExit){
+		Msg msgEvent;
+		if (!m_sendMsgQueue.TryPop(std::chrono::milliseconds(1000), msgEvent)) {
+			continue;  
+		}
+
+		//目的地址转化为ip
+		std::vector<std::string> ipDest;
+		bool found = false;
+		for(auto dest: msgEvent.crDest){
+			for(auto node: common::NetConfig::ms_bootnode){
+				if(node["address"] == dest){
+					ipDest.push_back(node["consensus_network"]);
+					found = true;
+					break;
+				}
+			}
+		}
+
+		if(!found){
+			LOG_ERROR("[net] [bootnode] [address] config error..." );
+		}
+
+		//设置对方地址
+		std::vector<sockaddr_in> sockaddrList;
+		for(size_t i = 0; i < ipDest.size(); i++){
+			common::StringVector ip_array = common::String::Strtok(ipDest[i], ':');
+			if(ip_array.size() <= 1){
+				LOG_ERROR("[net] [bootnode] [consensus_network] config error..." );
+				continue;
+			}
+
+			sockaddr_in peerAddr;
+			peerAddr.sin_family = AF_INET;
+			peerAddr.sin_port = htons(common::String::ToUint(ip_array[1])); // 设置对方端口
+			inet_pton(AF_INET, ip_array[0].c_str(), &peerAddr.sin_addr); // 设置对方IP地址
+
+			sockaddrList.push_back(std::move(peerAddr));
+		}
+
+		//发送数据到对方节点
+		std::string & crValue = msgEvent.crValue;
+		LOG_INFO("send data %s, size %d, ", crValue, crValue.size());
+		for(auto peerAddr: sockaddrList){
+			sendto(m_nodeSocket, crValue.c_str(), crValue.size() + 1, 0, (sockaddr*)&peerAddr, sizeof(peerAddr));
+		}
+	}
+}
 
 void Network::recvMsg() {
-    sockaddr_in fromAddr;
-    socklen_t fromAddrLen = sizeof(fromAddr);
-    memset(recvBuf, 0, 50 * 1024);
-    int bytesReceived = recvfrom(m_nodeSocket, recvBuf, 50 * 1024, 0, (sockaddr *)&fromAddr, &fromAddrLen);
-    if (bytesReceived == -1) {
-        LOG_ERROR("recvMsg failed...");
-    } else {
-        std::string recvData = std::string(recvBuf, 0, bytesReceived);
-        LOG_INFO("recvMsg data %s, size %d, ", recvData, bytesReceived);
-        m_recvMsgQueue.Push(recvData);
-    }
+	while(!m_isExit){
+		sockaddr_in fromAddr;
+		socklen_t fromAddrLen = sizeof(fromAddr);
+		memset(mp_recvBuf, 0, 50 * 1024);
+		int bytesReceived = recvfrom(m_nodeSocket, mp_recvBuf, 50 * 1024, MSG_DONTWAIT, (sockaddr *)&fromAddr, &fromAddrLen);
+		if (bytesReceived > -1) {
+			std::string recvData = std::string(mp_recvBuf, 0, bytesReceived);
+			LOG_INFO("recvMsg data %s, size %d, ", recvData, bytesReceived);
+			m_recvMsgQueue.Push(recvData);
+		}
+
+		std::this_thread::sleep_for( std::chrono::milliseconds(500) );
+	}
 }
 
 void Send(const std::string &cr_from, const std::vector<std::string> &cr_dest, const std::string &cr_value) {
