@@ -20,10 +20,12 @@
  * @file: main.cpp
  */
 
-#include "Configure.h"
-#include "Singleton.h"
-#include "StoreValue.h"
-#include "ThreadPool.h"
+#include "common/Configure.h"
+#include "common/Singleton.h"
+#include "dealing/StoreValue.h"
+#include "common/ThreadPool.h"
+#include "net/Network.h"
+#include "../../lib/utils/Logger.h"
 
 int main(int argc, char *argv[]) {
     if (argc != 1) {
@@ -35,11 +37,14 @@ int main(int argc, char *argv[]) {
     if (!common::Configure::LoadConfig("./config/config.yaml")) {
         return -1;
     }
-    if (!utils::Logger::InitializeGlog(common::LogConfig::ms_path, common::LogConfig::ms_level, "Xbft-sample")) {
+    if (!utils::Logger::InitializeGlog(common::LogConfig::ms_path, utils::LOG_LEVEL_TRACE, "Xbft-sample")) {
         return -1;
     };
 
     // 启动网络模块
+    net::Network &network = net::Network::Instance();
+    network.Initialize();
+    /*
 
     // 启动数据处理模块
     dealing::StoreValue::InitInstance();
@@ -60,6 +65,8 @@ int main(int argc, char *argv[]) {
     }
 
     dealing::StoreValue::ExitInstance();
+
+    */
 
     return 0;
 }

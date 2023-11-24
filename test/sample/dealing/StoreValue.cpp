@@ -25,6 +25,7 @@
 #include "Logger.h"
 #include "Strings.h"
 
+/*
 namespace dealing {
 StoreValue::StoreValue() {
     m_seq = 0;
@@ -60,3 +61,4 @@ void ValueCommited(std::shared_ptr<xbft::ConsData> p_consData, const std::string
 }
 
 }  // namespace dealing
+*/

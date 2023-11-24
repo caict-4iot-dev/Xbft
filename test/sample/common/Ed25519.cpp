@@ -25,6 +25,7 @@
 #include "Random.h"
 #include <ed25519/ed25519.h>
 
+/*
 namespace common {
 Ed25519::Ed25519() {
     GetStrongRandBytes(m_privateKey);
@@ -70,3 +71,4 @@ std::string PublicKeyToAddress(const std::string &cr_publicKey) {
 }
 
 }  // namespace common
+*/

@@ -26,6 +26,7 @@
 #include "ConsEngine.h"
 #include "chain.pb.h"
 
+/*
 namespace dealing {
 class ConsensusValue : public xbft::ConsData {
 public:
@@ -62,5 +63,5 @@ static std::shared_ptr<ConsData> ParseStringToConsData(const std::string &cr_inp
 
 }  // namespace dealing
 
-
+*/
 #endif

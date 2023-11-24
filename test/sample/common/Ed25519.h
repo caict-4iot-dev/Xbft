@@ -24,6 +24,7 @@
 #define _ED25519_H_
 #include <string>
 
+/*
 namespace common {
 class Ed25519 {
 public:
@@ -46,4 +47,6 @@ static bool Verify(const std::string &cr_publicKey, const std::string &cr_inputM
 static std::string PublicKeyToAddress(const std::string &cr_publicKey);
 
 }  // namespace common
+
+*/
 #endif  //_ED25519_H_

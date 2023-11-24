@@ -23,6 +23,7 @@
 #ifndef __STORE_VALUE_H__
 #define __STORE_VALUE_H__
 
+/*
 namespace dealing {
 
 #include "ConsEngine.h"
@@ -49,5 +50,6 @@ private:
 static void ValueCommited(std::shared_ptr<xbft::ConsData> p_consData, const std::string &cr_proof);
 
 }  // namespace dealing
+*/
 
 #endif

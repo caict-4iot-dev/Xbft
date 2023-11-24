@@ -22,6 +22,7 @@
  */
 #include "ThreadPool.h"
 
+/*
 bool common::ThreadPool::InitThreadNum(std::size_t num, bool bindCpu) {
     if (num <= 0) {
         num = std::thread::hardware_concurrency();
@@ -120,3 +121,4 @@ void common::ThreadPool::cleanTaskQueue() {
         m_taskQueue.pop();
     }
 }
+*/

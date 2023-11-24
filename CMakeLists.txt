@@ -12,7 +12,7 @@ project(xbft)
 set(PROJECT_VERSION 1.0.0)
 
 if(NOT DEFINED COMPILE_3RD)
-    option(COMPILE_3RD "Compile 3rd" ON)
+    option(COMPILE_3RD "Compile 3rd" OFF)
 endif()
 
 message(STATUS "COMPILE_3RD=" ${COMPILE_3RD})
@@ -111,7 +111,7 @@ if(NOT DEFINED BUILD_UNIT_TESTS_OPT)
 endif()
 
 if(NOT DEFINED BUILD_SAMPLE_OPT)
-    option(BUILD_SAMPLE_OPT "Build sample" OFF)
+    option(BUILD_SAMPLE_OPT "Build sample" ON)
 endif()
 
 # c++17

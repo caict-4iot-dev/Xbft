@@ -10,22 +10,23 @@ endif()
 
 
 
-file(GLOB_RECURSE PROTOS ${CMAKE_SOURCE_DIR}/lib/protos/*.proto)
+file(GLOB_RECURSE PROTOS ${CMAKE_SOURCE_DIR}/lib/protos/*.proto ${CMAKE_SOURCE_DIR}/test/sample/proto/*.proto)
 
 set(PROTO_SRC "")
 set(PROTO_HDRS "")
 
 foreach(proto ${PROTOS})
         get_filename_component(PROTO_FILE ${proto} NAME_WE)
+        get_filename_component(PROTO_PATH ${proto} DIRECTORY)
 
-        list(APPEND PROTO_SRC "${CMAKE_SOURCE_DIR}/lib/protos/${PROTO_FILE}.pb.cc")
+        list(APPEND PROTO_SRC "${PROTO_PATH}/${PROTO_FILE}.pb.cc")
 
-        list(APPEND PROTO_HDRS "${CMAKE_SOURCE_DIR}/lib/protos/${PROTO_FILE}.pb.h")
+        list(APPEND PROTO_HDRS "${PROTO_PATH}/${PROTO_FILE}.pb.h")
 
         add_custom_command(
-          OUTPUT "${CMAKE_SOURCE_DIR}/lib/protos/${PROTO_FILE}.pb.cc"
-                 "${CMAKE_SOURCE_DIR}/lib/protos/${PROTO_FILE}.pb.h"
-          COMMAND  ${PROTO_BIN}  --cpp_out  ${CMAKE_SOURCE_DIR}/lib/protos/ -I${CMAKE_SOURCE_DIR}/lib/protos/  ${proto}
+          OUTPUT "${PROTO_PATH}/${PROTO_FILE}.pb.cc"
+                 "${PROTO_PATH}/${PROTO_FILE}.pb.h"
+          COMMAND  ${PROTO_BIN}  --cpp_out  ${PROTO_PATH} -I${PROTO_PATH}  ${proto}
           DEPENDS ${proto}
           COMMENT "Running C++ protocol buffer compiler on ${proto}"
           VERBATIM

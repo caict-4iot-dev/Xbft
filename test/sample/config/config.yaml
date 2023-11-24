@@ -9,10 +9,20 @@ consensus:
     - ''
   interval: 100
 net:
-  port: 1230
+  port: 54002
   bootnode:
     - 
-    - '127.0.0.1:12323'
+      consensus_network: '127.0.0.1:54002'
+      address: 'did:bid:efFPx2KuK5nvVvrAz2raQpC4AKBj5pdA'
+    - 
+      consensus_network: '127.0.0.1:54003'
+      address: 'did:bid:efva9sKqkqhnxp3UpgdypxEorriusPPd'
+    - 
+      consensus_network: '127.0.0.1:54004'
+      address: 'did:bid:efGKDE63DSDjmUHynCdCzYN3hScC1TyQ'
+    - 
+      consensus_network: '127.0.0.1:54005'
+      address: 'did:bid:ef6gjB4buZFENM2jXkCP2HefuP9SGUWv'
 logger:
   expire_days: 10
   level: DEBUG|WARNING|ERROR|FATAL

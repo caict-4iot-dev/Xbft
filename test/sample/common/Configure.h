@@ -56,6 +56,10 @@ public:
 class NetConfig {
 public:
     static bool LoadConfig(const YAML::Node &cr_config);
+
+public:
+    static int ms_port;
+    static std::vector<std::map<std::string, std::string>> ms_bootnode;
 };
 
 class LogConfig {

@@ -24,7 +24,7 @@
 #include "Logger.h"
 #include "Sha256.h"
 
-
+/*
 namespace dealing {
 ConsensusValue::ConsensusValue() {
     m_closeTime = 0;
@@ -105,3 +105,4 @@ std::shared_ptr<ConsData> ParseStringToConsData(const std::string &cr_input) {
 }
 
 }  // namespace dealing
+*/

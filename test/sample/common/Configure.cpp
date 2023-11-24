@@ -41,6 +41,12 @@ bool Configure::LoadConfig(const std::string &cr_cfgPath) {
             break;
         }
 
+        //load net config
+        if (!NetConfig::LoadConfig(config)) {
+            std::cout << "Load net config failed." << std::endl;
+            break;
+        }
+
         // load logger config
         if (!LogConfig::LoadConfig(config)) {
             std::cout << "Load logger config failed." << std::endl;
@@ -118,6 +124,30 @@ bool LogConfig::LoadConfig(const YAML::Node &cr_config) {
         std::cout << "Load logger configure successful." << std::endl;
     } catch (const std::exception &e) {
         std::cout << "Load logger config exception, detail is " << e.what() << std::endl;
+        ret = false;
+    }
+    return ret;
+}
+
+
+int NetConfig::ms_port = 0;
+std::vector<std::map<std::string, std::string>> NetConfig::ms_bootnode;
+bool NetConfig::LoadConfig(const YAML::Node &cr_config) {
+    bool ret = true;
+    try {
+        // load net configure
+        NetConfig::ms_port = cr_config["net"]["port"].as<int>();
+        for(auto node : cr_config["net"]["bootnode"]){
+            std::map<std::string, std::string> tempNode;
+            for(auto it : node){
+                tempNode[it.first.as<std::string>()] = it.second.as<std::string>();
+            }
+            NetConfig::ms_bootnode.push_back(std::move(tempNode));
+        }
+
+        std::cout << "Load net configure successful." << std::endl;
+    } catch (const std::exception &e) {
+        std::cout << "Load net config exception, detail is " << e.what() << std::endl;
         ret = false;
     }
     return ret;
