@@ -44,12 +44,14 @@ XbftConsensus::~XbftConsensus() = default;
 bool XbftConsensus::Initialize(std::shared_ptr<KeyInterface> p_keyInfo,
     const std::vector<std::string> &cr_validatorsVec, int64_t viewNumber, const std::string &cr_lastProof) {
     do {
+        LOG_INFO("XbftConsensus::Initialize m_viewNumber:%ld", m_viewNumber);
         m_viewNumber = viewNumber;
         mp_replicaKey = p_keyInfo;
 
         protocol::ValidatorSet validators;
         for (auto address : cr_validatorsVec) {
             validators.add_validators()->set_address(address);
+            LOG_INFO("XbftConsensus::Initialize Validator:%s", address.c_str());
         }
         // must update validator firstly
         UpdateValidators(validators);

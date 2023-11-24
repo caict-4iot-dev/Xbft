@@ -33,7 +33,6 @@
 #include <iostream>
 #include <string>
 
-
 std::atomic_bool common::ExitHandler::ms_exitFlag = false;
 
 void GenerateKey() {
@@ -81,7 +80,7 @@ int main(int argc, char *argv[]) {
 
         // 启动数据处理模块
         dealing::BlockChain &blockChain = dealing::BlockChain::Instance();
-        if (!blockChain.Initialize(network.mp_net)) {
+        if (!blockChain.Initialize(network.mp_net, network.GetMsgQueue())) {
             LOG_ERROR("Failed to initialize blockChain");
             break;
         }

@@ -24,23 +24,25 @@
 #include "BlockChain.h"
 #include "ConsensusValue.h"
 #include "Ed25519.h"
+#include "ExitHandler.h"
 #include "Logger.h"
 #include "NodeInfo.h"
 #include "Timestamp.h"
 #include "Xbft.h"
 #include "utils/Strings.h"
 
-
 namespace dealing {
 BlockChain::BlockChain() {
-    m_seq = 0;
+    m_seq = 1;
     m_lastProof = "";
     m_previousHash = "";
     mp_consensusEngine = nullptr;
     m_lastConsensusTime = 0;
+    mp_recvNetData = nullptr;
+    mp_keyTool = nullptr;
 }
 
-bool BlockChain::Initialize(std::shared_ptr<xbft::NetInterface> p_net) {
+bool BlockChain::Initialize(std::shared_ptr<xbft::NetInterface> p_net, common::EventQueue<std::string> &r_msgQueue) {
     // 构建nodeInfo
     mp_nodeInfo = std::make_shared<NodeInfo>();
     if (mp_nodeInfo == nullptr) {
@@ -64,18 +66,24 @@ bool BlockChain::Initialize(std::shared_ptr<xbft::NetInterface> p_net) {
     valueDeal->m_valueCommited = dealing::ValueCommited;
 
     // 构建keyTool
-    auto keyTool = std::make_shared<xbft::KeyToolInterface>();
-    if (keyTool == nullptr) {
+    mp_keyTool = std::make_shared<xbft::KeyToolInterface>();
+    if (mp_keyTool == nullptr) {
         LOG_ERROR("BlockChain::Initialize keyTool nullptr");
         return false;
     }
-    keyTool->m_verify = common::Verify;
-    keyTool->m_publicKeyToAddr = common::PublicKeyToAddress;
-    keyTool->m_createConsData = dealing::ParseStringToConsData;
+    mp_keyTool->m_verify = common::Verify;
+    mp_keyTool->m_publicKeyToAddr = common::PublicKeyToAddress;
+    mp_keyTool->m_createConsData = dealing::ParseStringToConsData;
 
-    mp_consensusEngine = xbft::CreateXbftEngine(p_net, valueDeal, mp_nodeInfo, keyTool);
+    mp_consensusEngine = xbft::CreateXbftEngine(p_net, valueDeal, mp_nodeInfo, mp_keyTool);
     if (mp_consensusEngine == nullptr) {
         LOG_ERROR("BlockChain::Initialize CreateXbftEngine nullptr");
+        return false;
+    }
+
+    mp_recvNetData = std::make_shared<std::thread>(&BlockChain::dealConsensusData, this, std::ref(r_msgQueue));
+    if (mp_recvNetData == nullptr) {
+        LOG_ERROR("BlockChain::Initialize thread nullptr");
         return false;
     }
 
@@ -85,8 +93,20 @@ bool BlockChain::Initialize(std::shared_ptr<xbft::NetInterface> p_net) {
     return true;
 }
 
+void BlockChain::dealConsensusData(common::EventQueue<std::string> &r_msgQueue) {
+    while (!common::ExitHandler::GetExitFlag()) {
+        std::string msg = "";
+        if (!r_msgQueue.TryPop(std::chrono::milliseconds(100), msg)) {
+            continue;
+        }
+
+        xbft::Recv(mp_consensusEngine, msg, mp_keyTool);
+    }
+}
+
 bool BlockChain::Exit() {
     LOG_INFO("BlockChain Exit");
+    mp_recvNetData->join();
     m_timerLoop.Stop();
     LOG_INFO("BlockChain Exit OK");
     return true;
@@ -135,6 +155,7 @@ bool BlockChain::startConsensus() {
     }
 
     m_lastConsensusTime = utils::Timestamp::HighResolution();
+    LOG_INFO("BlockChain::startConsensus current:%ld", m_seq);
 
     consValue->SetCloseTime(m_lastConsensusTime);
     consValue->SetSeq(m_seq + 1);

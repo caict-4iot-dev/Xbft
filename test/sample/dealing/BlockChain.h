@@ -24,9 +24,11 @@
 #define __BLOCK_CHAIN_H__
 
 #include "ConsEngine.h"
+#include "EventQueue.h"
 #include "Singleton.h"
 #include "Timer.h"
 #include <string>
+#include <thread>
 
 
 namespace dealing {
@@ -37,7 +39,7 @@ class BlockChain : public common::Singleton<BlockChain> {
 public:
     BlockChain();
     ~BlockChain() = default;
-    bool Initialize(std::shared_ptr<xbft::NetInterface> p_net);
+    bool Initialize(std::shared_ptr<xbft::NetInterface> p_net, common::EventQueue<std::string> &r_msgQueue);
     bool Exit();
 
 public:
@@ -50,6 +52,7 @@ public:
 private:
     void onTimeout();
     bool startConsensus();
+    void dealConsensusData(common::EventQueue<std::string> &r_msgQueue);
 
 private:
     int64_t m_seq;
@@ -58,9 +61,12 @@ private:
 
     std::shared_ptr<xbft::BftEngine> mp_consensusEngine;
     std::shared_ptr<NodeInfo> mp_nodeInfo;
+    std::shared_ptr<xbft::KeyToolInterface> mp_keyTool;
 
     utils::TimerLoop m_timerLoop;
     int64_t m_lastConsensusTime;  // 上次出块时间
+
+    std::shared_ptr<std::thread> mp_recvNetData;
 };
 
 void ValueCommited(std::shared_ptr<xbft::ConsData> p_consData, const std::string &cr_proof);

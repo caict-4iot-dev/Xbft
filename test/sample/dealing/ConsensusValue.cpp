@@ -77,23 +77,23 @@ std::string ConsensusValue::GetStringValue() {
 }
 
 void ConsensusValue::SetCloseTime(int64_t time) {
-    m_pbValue.set_close_time(time);
+    m_closeTime = time;
 }
 
 void ConsensusValue::SetSeq(int64_t seq) {
-    m_pbValue.set_ledger_seq(seq);
+    m_seq = seq;
 }
 
 void ConsensusValue::SeqPreviousProof(const std::string &cr_previousProof) {
-    m_pbValue.set_previous_proof(cr_previousProof);
+    m_previousProof = cr_previousProof;
 }
 
 void ConsensusValue::SetPreviousHash(const std::string &cr_previousHash) {
-    m_pbValue.set_previous_hash(cr_previousHash);
+    m_previousHash = cr_previousHash;
 }
 
 void ConsensusValue::SetValue(const std::string &cr_value) {
-    m_pbValue.set_value(cr_value);
+    m_value = cr_value;
 }
 
 /*
