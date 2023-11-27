@@ -50,7 +50,7 @@ public:
     bool IsValidator() const;                      // Return true if this node is a leader
     bool IsViewActive() const;
     size_t GetQuorumSize() const;  // Get quorum size, 2f+1
-    bool UpdateValidatorsAndProof(const protocol::ValidatorSet &cr_validatorSet, const std::string &cr_lastProof);
+    bool UpdateValidatorsAndProof(const std::vector<std::string> &cr_validators, const std::string &cr_lastProof);
     void UpdateValidators(const protocol::ValidatorSet &cr_validatorSet);
     bool UpdateProof(const std::string &proof);
     int64_t GetViewNumber() const;

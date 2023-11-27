@@ -70,26 +70,34 @@ void XbftConsensus::UpdateValidators(const protocol::ValidatorSet &cr_validatorS
 }
 
 bool XbftConsensus::UpdateValidatorsAndProof(
-    const protocol::ValidatorSet &cr_validatorSet, const std::string &cr_lastProof) {
+    const std::vector<std::string> &cr_validators, const std::string &cr_lastProof) {
     if (!UpdateProof(cr_lastProof)) {
         LOG_ERROR("Failed to update proof");
         return false;
     }
 
-    if (m_validators.Compare(cr_validatorSet)) {
-        UpdateValidators(cr_validatorSet);
-
-        if (m_validators.Size() < 4) {
-            LOG_WARN("Xbft couldn't tolerate fault node when validator size =%ld", m_validators.Size());
+    if (!cr_validators.empty()) {
+        protocol::ValidatorSet validatorSet;
+        for (auto validator : cr_validators) {
+            validatorSet.add_validators()->set_address(validator);
         }
 
-        m_faultNumber = (m_validators.Size() - 1) / 3;
+        if (m_validators.Compare(validatorSet)) {
+            UpdateValidators(validatorSet);
 
-        LOG_INFO(
-            "When validator size = %ld, pbft can tolerate %ld fault nodes, Current node's replica_id = %ld, so it %s a "
-            "leader",
-            m_validators.Size(), m_faultNumber, m_replicaId,
-            m_viewNumber % (int64_t)m_validators.Size() == m_replicaId ? "is" : "isnot");
+            if (m_validators.Size() < 4) {
+                LOG_WARN("Xbft couldn't tolerate fault node when validator size =%ld", m_validators.Size());
+            }
+
+            m_faultNumber = (m_validators.Size() - 1) / 3;
+
+            LOG_INFO(
+                "When validator size = %ld, pbft can tolerate %ld fault nodes, Current node's replica_id = %ld, so it "
+                "%s a "
+                "leader",
+                m_validators.Size(), m_faultNumber, m_replicaId,
+                m_viewNumber % (int64_t)m_validators.Size() == m_replicaId ? "is" : "isnot");
+        }
     }
 
     return true;
@@ -151,6 +159,7 @@ bool XbftConsensus::UpdateProof(const std::string &cr_lastProof) {
         if (newViewNumber > -1) {
             m_isViewActive = true;
             m_viewNumber = newViewNumber;
+            mp_valueDealing->m_viewChange();
             LOG_INFO("Setting the last execution view(%ld)", m_viewNumber);
         }
 
@@ -218,7 +227,7 @@ bool XbftConsensus::Propose(std::shared_ptr<ConsData> p_consData) {
     }
 
     m_lastSequence = p_consData->GetSeq();
-    LOG_INFO("Replica(%ld) start to propose view(%ld)", m_replicaId, m_viewNumber);
+    LOG_INFO("Replica(%ld) start to propose view(%ld) seq(%ld)", m_replicaId, m_viewNumber, m_lastSequence);
 
     protocol::XbftQc preQc;
     const std::string &proof = p_consData->GetPreviousProof();
@@ -671,7 +680,7 @@ void XbftConsensus::ViewChanged(int64_t viewNumber, const XbftQcPointer &cr_qc) 
     m_viewNumber = viewNumber;
     m_isViewActive = true;
     LOG_INFO("Replica(%ld), View number changed to(%ld)", m_replicaId, m_viewNumber);
-
+    mp_valueDealing->m_viewChange();
     do {
         if (!cr_qc) {
             break;

@@ -40,6 +40,12 @@ void Rotate(std::shared_ptr<BftEngine> p_engine) {
     xbftEngine->Rotate();
 }
 
+bool UpdateValidatorsAndProof(std::shared_ptr<BftEngine> p_engine, const std::vector<std::string> &cr_validators,
+    const std::string &cr_lastProof) {
+    std::shared_ptr<XbftEngine> xbftEngine = std::static_pointer_cast<XbftEngine>(p_engine);
+    return xbftEngine->UpdateValidatorsAndProof(cr_validators, cr_lastProof);
+}
+
 bool Propose(std::shared_ptr<BftEngine> p_engine, std::shared_ptr<ConsData> p_consData) {
     std::shared_ptr<XbftEngine> xbftEngine = std::static_pointer_cast<XbftEngine>(p_engine);
     return xbftEngine->Propose(p_consData);

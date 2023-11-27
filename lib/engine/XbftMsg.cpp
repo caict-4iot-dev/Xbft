@@ -246,7 +246,7 @@ bool XbftMsg::CheckMsgItem(const XbftValidatorSet &cr_validators) const {
         if (!mp_keyTool->m_verify(pbft.SerializeAsString(), sig.sign_data(), sig.public_key())) {
             LOG_TRACE("ser:%s", utils::String::BinToHexString(pbft.SerializeAsString()).c_str());
             LOG_TRACE("sig:%s", utils::String::BinToHexString(sig.sign_data()).c_str());
-            LOG_TRACE("pub:%s", utils::String::BinToHexString(sig.public_key()).c_str());
+            LOG_TRACE("pub:%s", sig.public_key().c_str());
             LOG_ERROR("Failed to check received message's signature, desc(%s)", GetDesc().c_str());
             break;
         }

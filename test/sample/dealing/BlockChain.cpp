@@ -64,6 +64,7 @@ bool BlockChain::Initialize(std::shared_ptr<xbft::NetInterface> p_net, common::E
     }
     valueDeal->m_checkValue = dealing::ConsensusValueCheck;
     valueDeal->m_valueCommited = dealing::ValueCommited;
+    valueDeal->m_viewChange = dealing::ViewChange;
 
     // 构建keyTool
     mp_keyTool = std::make_shared<xbft::KeyToolInterface>();
@@ -86,6 +87,9 @@ bool BlockChain::Initialize(std::shared_ptr<xbft::NetInterface> p_net, common::E
         LOG_ERROR("BlockChain::Initialize thread nullptr");
         return false;
     }
+
+    // 延迟3s启动
+    std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 
     // 启动定时器 打包判断 及 view-change判断
     m_timerLoop.SetTimeOut(1000, [this]() { onTimeout(); });
@@ -129,20 +133,25 @@ void BlockChain::Store(std::shared_ptr<xbft::ConsData> p_consensus, const std::s
     m_seq = consensusValue->GetSeq();
     m_previousHash = consensusValue->GetHash();
     m_lastProof = cr_proof;
+
+    m_lastConsensusTime = consensusValue->GetCloseTime();
     LOG_INFO("Store seq:%ld, previousHash:%s", m_seq, utils::String::BinToHexString(m_previousHash).c_str());
 }
 
+void BlockChain::ViewChange() {
+    LOG_INFO("BlockChain viewChange over");
+    m_lastConsensusTime = utils::Timestamp::HighResolution();
+}
+
 bool BlockChain::startConsensus() {
-    // is leader?
-    if (!xbft::IsLeader(mp_consensusEngine)) {
-        LOG_INFO("StartConsensus Current Node Not Leader, seq:%ld, view-number:%ld", m_seq,
-            xbft::GetViewNumber(mp_consensusEngine));
+    // is viewActive
+    if (!xbft::IsViewActive(mp_consensusEngine)) {
         return true;
     }
 
-    // is viewActive
-    if (!xbft::IsViewActive(mp_consensusEngine)) {
-        LOG_INFO("StartConsensus Current In View-change, seq:%ld, view-number:%ld", m_seq,
+    // is leader?
+    if (!xbft::IsLeader(mp_consensusEngine)) {
+        LOG_INFO("StartConsensus Current Node Not Leader, seq:%ld, view-number:%ld", m_seq,
             xbft::GetViewNumber(mp_consensusEngine));
         return true;
     }
@@ -163,6 +172,8 @@ bool BlockChain::startConsensus() {
     consValue->SetPreviousHash(m_previousHash);
     consValue->SetValue("test value");
 
+    consValue->SetProtobufData();
+
     // 发起提案
     return xbft::Propose(mp_consensusEngine, consValue);
 }
@@ -172,10 +183,11 @@ void BlockChain::onTimeout() {
     if (utils::Timestamp::HighResolution() - m_lastConsensusTime > mp_nodeInfo->GetBlockInterVal()) {
         startConsensus();
     }
-    // 检测是否超过配置的出块时间 5 * BlickInterVal
+    // 检测是否超过配置的出块时间 5 * BlockInterVal
     if (utils::Timestamp::HighResolution() - m_lastConsensusTime > 5 * mp_nodeInfo->GetBlockInterVal()) {
         // 发起view-change
-        if (!xbft::IsViewActive(mp_consensusEngine)) {
+        if (xbft::IsViewActive(mp_consensusEngine)) {
+            LOG_INFO("BlockChain view-change trigger");
             xbft::Rotate(mp_consensusEngine);
         }
     }
@@ -183,6 +195,10 @@ void BlockChain::onTimeout() {
 
 void ValueCommited(std::shared_ptr<xbft::ConsData> p_consData, const std::string &cr_proof) {
     BlockChain::Instance().Store(p_consData, cr_proof);
+}
+
+void ViewChange() {
+    BlockChain::Instance().ViewChange();
 }
 
 }  // namespace dealing

@@ -24,6 +24,7 @@
 #include "Logger.h"
 #include "Sha256.h"
 #include "Timestamp.h"
+#include "utils/Strings.h"
 
 namespace dealing {
 ConsensusValue::ConsensusValue() {
@@ -96,11 +97,22 @@ void ConsensusValue::SetValue(const std::string &cr_value) {
     m_value = cr_value;
 }
 
+void ConsensusValue::SetProtobufData() {
+    m_pbValue.set_close_time(m_closeTime);
+    m_pbValue.set_ledger_seq(m_seq);
+    m_pbValue.set_previous_hash(m_previousHash);
+    m_pbValue.set_previous_proof(m_previousProof);
+    m_pbValue.set_value(m_value);
+
+    m_strValue = m_pbValue.SerializeAsString();
+
+    m_hash = utils::Sha256::Crypto(m_strValue);
+}
+
 /*
     针对待共识数据结构进行验证；如共识结构高度、共识结构生成时间、待共识数据大小等内容；
 */
 bool ConsensusValueCheck(std::shared_ptr<xbft::ConsData> p_consData) {
-    LOG_INFO("ConsensusValueCheck .......");
     std::shared_ptr<ConsensusValue> consensusValue = std::static_pointer_cast<ConsensusValue>(p_consData);
     if (consensusValue == nullptr) {
         LOG_ERROR("ConsensusValueCheck Error");
@@ -125,7 +137,6 @@ bool ConsensusValueCheck(std::shared_ptr<xbft::ConsData> p_consData) {
     共识数据构建，通过string构建consData结构
 */
 std::shared_ptr<xbft::ConsData> ParseStringToConsData(const std::string &cr_input) {
-    LOG_INFO("ParseStringToConsData .......");
     auto cons = std::make_shared<ConsensusValue>(cr_input);
     return cons;
 }

@@ -28,6 +28,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <sstream>
+#include "utils/Strings.h"
 
 namespace net {
 Network::Network()
@@ -118,7 +119,7 @@ common::EventQueue<std::string> &Network::GetMsgQueue() {
 void Network::sendMsg() {
     while (!m_isExit) {
         Msg msgEvent;
-        if (!m_sendMsgQueue.TryPop(std::chrono::milliseconds(1000), msgEvent)) {
+        if (!m_sendMsgQueue.TryPop(std::chrono::milliseconds(100), msgEvent)) {
             continue;
         }
 
@@ -160,9 +161,9 @@ void Network::sendMsg() {
 
         // 发送数据到对方节点
         std::string &crValue = msgEvent.crValue;
-        // LOG_INFO("send data %s, size %d, ", crValue, crValue.size());
+        LOG_INFO("send data size %ld, ", crValue.size());
         for (auto peerAddr : sockaddrList) {
-            sendto(m_nodeSocket, crValue.c_str(), crValue.size() + 1, 0, (sockaddr *)&peerAddr, sizeof(peerAddr));
+            sendto(m_nodeSocket, crValue.c_str(), crValue.size(), 0, (sockaddr *)&peerAddr, sizeof(peerAddr));
         }
     }
 }
@@ -171,20 +172,22 @@ void Network::recvMsg() {
     while (!m_isExit) {
         sockaddr_in fromAddr;
         socklen_t fromAddrLen = sizeof(fromAddr);
-        memset(mp_recvBuf, 0, 50 * 1024);
+        char recvBuf[50 * 1024] = {0};
+        memset(recvBuf, 0, 50 * 1024);
         int bytesReceived =
-            recvfrom(m_nodeSocket, mp_recvBuf, 50 * 1024, MSG_DONTWAIT, (sockaddr *)&fromAddr, &fromAddrLen);
+            recvfrom(m_nodeSocket, recvBuf, 50 * 1024, MSG_DONTWAIT, (sockaddr *)&fromAddr, &fromAddrLen);
         if (bytesReceived > -1) {
-            std::string recvData = std::string(mp_recvBuf, 0, bytesReceived);
-            // LOG_INFO("recvMsg data %s, size %d, ", recvData, bytesReceived);
+            std::string recvData = std::string(recvBuf, bytesReceived);
+            LOG_INFO("recvMsg size %ld recvData size:%ld", bytesReceived, recvData.size());
             m_recvMsgQueue.Push(recvData);
         }
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }
 
 void Send(const std::string &cr_from, const std::vector<std::string> &cr_dest, const std::string &cr_value) {
+    LOG_INFO("Net Send data size %ld", cr_value.size());
     Network::Instance().SendMsg(cr_from, cr_dest, cr_value);
 }
 }  // namespace net

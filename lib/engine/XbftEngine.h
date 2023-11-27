@@ -53,6 +53,7 @@ public:
     int64_t GetViewNumber();
     bool IsViewActive();
     size_t GetQuorumSize();
+    bool UpdateValidatorsAndProof(const std::vector<std::string> &cr_validators, const std::string &cr_lastProof);
 
 private:
     std::shared_ptr<XbftConsensus> mp_consensus;

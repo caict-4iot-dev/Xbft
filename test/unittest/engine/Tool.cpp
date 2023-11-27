@@ -56,6 +56,7 @@ std::shared_ptr<xbft::ValueDealInterface> Tool::CreateValueDeal() {
     auto valueDeal = std::make_shared<xbft::ValueDealInterface>();
     valueDeal->m_checkValue = toolMock::checkValue;
     valueDeal->m_valueCommited = toolMock::valueCommited;
+    valueDeal->m_viewChange = toolMock::viewChange;
 
     return valueDeal;
 }

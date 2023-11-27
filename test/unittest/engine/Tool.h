@@ -155,6 +155,8 @@ public:
         } while (false);
     }
 
+    static void viewChange() {}
+
 public:
 };
 

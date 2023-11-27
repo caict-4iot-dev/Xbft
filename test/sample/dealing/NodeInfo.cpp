@@ -30,8 +30,8 @@
 namespace dealing {
 NodeInfo::NodeInfo() {
     mp_key = nullptr;
-    m_interval = 1000;
-    m_blockInterVal = 1000;
+    m_interval = 5;
+    m_blockInterVal = 3;
     m_lastProof = "";
     m_viewNumber = 0;
     m_validators.clear();
@@ -44,8 +44,8 @@ bool NodeInfo::LoadConfig() {
         LOG_ERROR("NodeInfo::LoadConfig Ed25519 nullptr");
         return false;
     }
-    m_interval = common::ConsConfig::m_interval;
-    m_blockInterVal = common::NodeConfig::m_interval;
+    m_interval = common::ConsConfig::m_interval * 1000 * 1000;       // 单位s
+    m_blockInterVal = common::NodeConfig::m_interval * 1000 * 1000;  // 单位s
 
     m_validators = common::ConsConfig::m_validators;
     if (m_validators.size() < 4) {

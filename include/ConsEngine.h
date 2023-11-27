@@ -80,10 +80,12 @@ public:
 // value dealing
 typedef bool (*CheckValueFun)(std::shared_ptr<ConsData> p_consData);
 typedef void (*ValueCommitedFun)(std::shared_ptr<ConsData> p_consData, const std::string &cr_proof);
+typedef void (*ViewChangeFun)();
 
 struct ValueDealInterface {
     CheckValueFun m_checkValue;
     ValueCommitedFun m_valueCommited;
+    ViewChangeFun m_viewChange;
 };
 
 class BftEngine {

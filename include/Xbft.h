@@ -41,6 +41,12 @@ std::shared_ptr<BftEngine> CreateXbftEngine(std::shared_ptr<NetInterface> p_net,
 void Rotate(std::shared_ptr<BftEngine> p_engine);
 
 /**
+ * @description: when data update, we can use this function to update consensus validators and proof infomation
+ * @return {true: update success. false:update fail}
+ */
+bool UpdateValidatorsAndProof(const std::vector<std::string> &cr_validators, const std::string &cr_lastProof);
+
+/**
  * @description: Provide consensus data and initiate xbft consensus proposal
  * @param {shared_ptr<BftEngine>} p_engine
  * @param {shared_ptr<ConsData>} p_consData

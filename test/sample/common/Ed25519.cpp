@@ -22,9 +22,11 @@
 
 
 #include "Ed25519.h"
+#include "Logger.h"
 #include "Random.h"
 #include "utils/Strings.h"
 #include <ed25519/ed25519.h>
+
 
 namespace common {
 Ed25519::Ed25519() {
@@ -64,7 +66,7 @@ void Ed25519::from(const std::string &cr_sPrivateKey) {
     ed25519_publickey((const unsigned char *)m_privateKey.c_str(), (unsigned char *)m_publickKey.c_str());
 }
 
-bool Verify(const std::string &cr_publicKey, const std::string &cr_inputMsg, const std::string &cr_sig) {
+bool Verify(const std::string &cr_inputMsg, const std::string &cr_sig, const std::string &cr_publicKey) {
     auto pub = utils::String::HexStringToBin(cr_publicKey);
     int res = ed25519_sign_open((unsigned char *)cr_inputMsg.c_str(), cr_inputMsg.size(), (unsigned char *)pub.c_str(),
         (unsigned char *)cr_sig.c_str());

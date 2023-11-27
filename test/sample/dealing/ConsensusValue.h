@@ -50,6 +50,7 @@ public:
     void SeqPreviousProof(const std::string &cr_previousProof);
     void SetPreviousHash(const std::string &cr_previousHash);
     void SetValue(const std::string &cr_value);
+    void SetProtobufData();
 
 private:
     int64_t m_closeTime;

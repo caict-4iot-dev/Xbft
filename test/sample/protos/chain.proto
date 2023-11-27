@@ -1,6 +1,18 @@
 syntax = "proto3";
 package protocol;
 
+enum MESSAGE_TYPE{
+	OVERLAY_MSGTYPE_NONE = 0;
+	MSG_CONSENSUS  = 1;
+	MSG_SYNC = 2;
+}
+
+message Message {
+	MESSAGE_TYPE type = 1;
+	bool request = 2; //true :request , false:reponse
+	bytes data = 3;
+}
+
 message ConsensusValue {
 	int64 close_time = 1;
 	int64 ledger_seq = 2;

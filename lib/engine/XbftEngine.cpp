@@ -97,5 +97,9 @@ size_t XbftEngine::GetQuorumSize() {
     return mp_consensus->GetQuorumSize();
 }
 
+bool XbftEngine::UpdateValidatorsAndProof(const std::vector<std::string> &cr_validators, const std::string &cr_lastProof) {
+    return mp_consensus->UpdateValidatorsAndProof(cr_validators, cr_lastProof);
+}
+
 
 }  // namespace xbft
