@@ -68,12 +68,9 @@ private:
     common::EventQueue<Msg> m_sendMsgQueue;
     common::EventQueue<std::string> m_recvMsgQueue;
 
-    std::thread *mp_sendThread;
-    std::thread *mp_recvThread;
+    std::shared_ptr<std::thread> mp_sendThread;
+    std::shared_ptr<std::thread> mp_recvThread;
 
-    char *mp_recvBuf;
-    
-    bool m_isExit;
 };
 
 void Send(const std::string &cr_from, const std::vector<std::string> &cr_dest, const std::string &cr_value);

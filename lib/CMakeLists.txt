@@ -2,13 +2,12 @@ cmake_minimum_required(VERSION 3.22)
 
 aux_source_directory(${XBFT_SRC_DIR}/utils/ UTILS_SRC)
 aux_source_directory(${XBFT_SRC_DIR}/crypto/ CRYPTO_SRC)
-aux_source_directory(${XBFT_SRC_DIR}/protos/ PROTOS_SRC)
 aux_source_directory(${XBFT_SRC_DIR}/engine/ ENGINE_SRC)
 
 add_library(xbft_static STATIC 
     ${UTILS_SRC}
     ${CRYPTO_SRC}
-    ${PROTOS_SRC}
+    ${PROTO_SRC}
     ${ENGINE_SRC}
 )
 set_target_properties(xbft_static PROPERTIES OUTPUT_NAME "xbft")
@@ -16,7 +15,7 @@ set_target_properties(xbft_static PROPERTIES CLEAN_DIRECT_OUTPUT 1)
 add_library(xbft SHARED 
     ${UTILS_SRC}
     ${CRYPTO_SRC}
-    ${PROTOS_SRC}
+    ${PROTO_SRC}
     ${ENGINE_SRC}
 )
 set_target_properties(xbft PROPERTIES OUTPUT_NAME "xbft")

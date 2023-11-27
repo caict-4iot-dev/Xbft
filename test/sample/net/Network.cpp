@@ -29,10 +29,11 @@
 #include <unistd.h>
 #include <sstream>
 #include "utils/Strings.h"
+#include "ExitHandler.h"
 
 namespace net {
 Network::Network()
-    : m_nodeSocket(-1), mp_sendThread(nullptr), mp_recvThread(nullptr), mp_recvBuf(nullptr), m_isExit(false) {}
+    : m_nodeSocket(-1), mp_sendThread(nullptr), mp_recvThread(nullptr) {}
 
 Network::~Network() {}
 
@@ -57,9 +58,8 @@ bool Network::Initialize() {
         return false;
     }
 
-    mp_recvBuf = new char[50 * 1024];
-    mp_recvThread = new std::thread(&Network::recvMsg, this);
-    mp_sendThread = new std::thread(&Network::sendMsg, this);
+    mp_recvThread = std::make_shared<std::thread>(&Network::recvMsg, this);
+    mp_sendThread = std::make_shared<std::thread>(&Network::sendMsg, this);
 
 
     mp_net = std::make_shared<xbft::NetInterface>();
@@ -74,26 +74,16 @@ bool Network::Initialize() {
 }
 
 bool Network::Exit() {
-    m_isExit = true;
     LOG_INFO("Network::Exit");
     // 关闭socket
     close(m_nodeSocket);
 
     if (mp_recvThread != nullptr) {
         mp_recvThread->join();
-        delete mp_recvThread;
-        mp_recvThread = nullptr;
     }
 
     if (mp_sendThread != nullptr) {
         mp_sendThread->join();
-        delete mp_sendThread;
-        mp_sendThread = nullptr;
-    }
-
-    if (mp_recvBuf != nullptr) {
-        delete[] mp_recvBuf;
-        mp_recvBuf = nullptr;
     }
 
     LOG_INFO("Network stop [OK]");
@@ -117,7 +107,7 @@ common::EventQueue<std::string> &Network::GetMsgQueue() {
 }
 
 void Network::sendMsg() {
-    while (!m_isExit) {
+    while (!common::ExitHandler::GetExitFlag()) {
         Msg msgEvent;
         if (!m_sendMsgQueue.TryPop(std::chrono::milliseconds(100), msgEvent)) {
             continue;
@@ -169,7 +159,7 @@ void Network::sendMsg() {
 }
 
 void Network::recvMsg() {
-    while (!m_isExit) {
+    while (!common::ExitHandler::GetExitFlag()) {
         sockaddr_in fromAddr;
         socklen_t fromAddrLen = sizeof(fromAddr);
         char recvBuf[50 * 1024] = {0};
