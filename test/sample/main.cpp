@@ -30,8 +30,10 @@
 #include "Singleton.h"
 #include "utils/Strings.h"
 #include <atomic>
+#include <fstream>
 #include <iostream>
 #include <string>
+
 
 std::atomic_bool common::ExitHandler::ms_exitFlag = false;
 
@@ -58,10 +60,18 @@ int main(int argc, char *argv[]) {
     }
 
     // 加载配置
-    if (!common::Configure::LoadConfig("./config.yaml")) {
+    std::string filename = "./config.yaml";
+    std::ifstream file(filename);
+    if (!file) {
+        std::cout << "please check config.yaml file" << std::endl;
         return -1;
     }
-    if (!utils::Logger::InitializeGlog(common::LogConfig::ms_path, utils::LOG_LEVEL_TRACE, "Xbft-sample")) {
+
+    if (!common::Configure::LoadConfig(filename)) {
+        return -1;
+    }
+    if (!utils::Logger::InitializeGlog(common::LogConfig::ms_path, common::LogConfig::ms_expireDays,
+            common::LogConfig::ms_sizeCapacity, common::LogConfig::ms_level, "Xbft-sample")) {
         return -1;
     };
 
@@ -80,7 +90,8 @@ int main(int argc, char *argv[]) {
 
         // 启动数据处理模块
         dealing::BlockChain &blockChain = dealing::BlockChain::Instance();
-        if (!blockChain.Initialize(network.mp_net, network.GetMsgQueue())) {
+        if (!blockChain.Initialize(
+                network.sendCons, network.sendSync, network.GetMsgQueue(), network.GetSyncMsgQueue())) {
             LOG_ERROR("Failed to initialize blockChain");
             break;
         }
@@ -96,6 +107,7 @@ int main(int argc, char *argv[]) {
 
     dealing::BlockChain::ExitInstance();
     net::Network::ExitInstance();
+    utils::Logger::Exit();
 
     return 0;
 }

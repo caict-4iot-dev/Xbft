@@ -20,4 +20,5 @@ aux_source_directory(${SAMPLE_SRC_DIR}/protos SAMPLE_PROTO_SRC)
 # Generate executable files
 add_executable(${APP_SAMPLE} ${SAMPLE_COMMON_SRC} ${SAMPLE_DEALING_SRC} ${SAMPLE_NET_SRC} ${SAMPLE_PROTO_SRC} ${APP_SAMPLE_SRC})
 target_include_directories(${APP_SAMPLE} PUBLIC ${XBFT_SAMPLE_INCLUDE_DIR} ${XBFT_INCLUDE_DIR})
-target_link_libraries(${APP_SAMPLE} ${INNER_LIBS} ${XBFT_DEPENDS_LIBS} ${XBFT_DEPEND_LIB})  
+target_link_libraries(${APP_SAMPLE} ${INNER_LIBS} ${XBFT_DEPENDS_LIBS} ${XBFT_DEPEND_LIB})
+add_dependencies(${APP_SAMPLE} generate_proto) 

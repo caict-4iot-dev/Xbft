@@ -23,9 +23,11 @@
 #ifndef __BLOCK_CHAIN_H__
 #define __BLOCK_CHAIN_H__
 
+#include "Common.h"
 #include "ConsEngine.h"
 #include "EventQueue.h"
 #include "Singleton.h"
+#include "Sync.h"
 #include "Timer.h"
 #include <string>
 #include <thread>
@@ -39,14 +41,16 @@ class BlockChain : public common::Singleton<BlockChain> {
 public:
     BlockChain();
     ~BlockChain() = default;
-    bool Initialize(std::shared_ptr<xbft::NetInterface> p_net, common::EventQueue<std::string> &r_msgQueue);
+    bool Initialize(common::SendMsgFun sendMsg, common::SendMsgTypeFun sendTypeMsg,
+        common::EventQueue<std::string> &r_msgQueue, common::EventQueue<common::SyncMsg> &r_msgSyncQueue);
     bool Exit();
 
 public:
     int64_t GetMaxSeq();
     std::string GetLastProof();
     std::string GetPreviousHash();
-    void Store(std::shared_ptr<xbft::ConsData> p_consensus, const std::string &cr_proof);
+    void Store(std::shared_ptr<xbft::ConsData> p_consensus, const std::string &cr_proof);  // for consensus
+    void Store(int64_t seq, const std::string &cr_hash, const std::string &cr_proof, int64_t closeTime);  // for sync
     void ViewChange();
 
 
@@ -54,6 +58,7 @@ private:
     void onTimeout();
     bool startConsensus();
     void dealConsensusData(common::EventQueue<std::string> &r_msgQueue);
+    void dealSyncData(common::EventQueue<common::SyncMsg> &r_msgSyncQueue);
 
 private:
     int64_t m_seq;
@@ -66,8 +71,13 @@ private:
 
     utils::TimerLoop m_timerLoop;
     int64_t m_lastConsensusTime;  // 上次出块时间
+    int64_t m_lastSyncTime;       // 上次同步时间
+    int64_t m_lastConsSeq;
 
     std::shared_ptr<std::thread> mp_recvNetData;
+    std::shared_ptr<std::thread> mp_recvNetSyncData;
+
+    std::shared_ptr<Sync> mp_sync;
 };
 
 void ValueCommited(std::shared_ptr<xbft::ConsData> p_consData, const std::string &cr_proof);

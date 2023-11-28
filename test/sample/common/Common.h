@@ -16,27 +16,35 @@
  *  limitations under the License.
  *
  * @author: maxufeng@caict.ac.cn
- * @date: 2023-11-17 09:49:05
- * @file: LoggerTest.cpp
+ * @date: 2023-11-27 17:56:34
+ * @file: Common.h
  */
 
+#ifndef __COMMON_H__
+#define __COMMON_H__
 
-#include "LoggerTest.h"
-#include "Logger.h"
-#include <filesystem>
+#include <string>
+#include <vector>
 
-TEST_F(LoggerTest, InitializeGlog) {
-    std::string path = "./testlog/";
-    utils::Logger::InitializeGlog(path, 10, 10, "DEBUG", "xbft");
-    ASSERT_EQ(utils::Logger::ms_logLevel, utils::LOG_LEVEL_DEBUG);
-    LOG_INFO("this is test line");
-    EXPECT_TRUE(std::filesystem::exists(path));
-    utils::Logger::Exit();
-    std::filesystem::remove_all(path);
-}
+namespace common {
 
-TEST_F(LoggerTest, SetLogLevel) {
-    int log_level = 0;
-    utils::Logger::SetLogLevel(log_level);
-    ASSERT_EQ(utils::Logger::ms_logLevel, log_level);
-}
+typedef void (*SendMsgFun)(
+    const std::string &cr_from, const std::vector<std::string> &cr_dest, const std::string &cr_value);
+
+typedef void (*SendMsgTypeFun)(
+    const std::string &cr_from, const std::vector<std::string> &cr_dest, const std::string &cr_value, bool request);
+
+struct Msg {
+    std::string crValue;
+    std::vector<std::string> crDest;
+};
+
+struct SyncMsg {
+    bool request;
+    std::string crValue;
+    std::string crDest;
+};
+
+}  // namespace common
+
+#endif

@@ -37,8 +37,24 @@ void utils::Logger::CustomerPrefix(std::ostream &r_os, const google::LogMessageI
          << std::setfill(' ') << std::setw(2) << cr_logMessageInfo.thread_id << std::setfill('0');
 }
 
-bool utils::Logger::InitializeGlog(const std::string &cr_fileName, LogLevel level, const std::string &cr_label) {
-    int levelVlog = level;
+bool utils::Logger::InitializeGlog(const std::string &cr_fileName, int64_t expir, int64_t capacity,
+    const std::string &cr_level, const std::string &cr_label) {
+    int levelVlog = utils::LOG_LEVEL_TRACE;
+
+    if (cr_level.find("TRACE") != std::string::npos)
+        levelVlog = utils::LOG_LEVEL_TRACE;
+    else if (cr_level.find("DEBUG") != std::string::npos)
+        levelVlog = utils::LOG_LEVEL_DEBUG;
+    else if (cr_level.find("INFO") != std::string::npos)
+        levelVlog = utils::LOG_LEVEL_INFO;
+    else if (cr_level.find("PERFORMANCE") != std::string::npos)
+        levelVlog = utils::LOG_LEVEL_PERFORMANCE;
+    else if (cr_level.find("WARNING") != std::string::npos)
+        levelVlog = utils::LOG_LEVEL_WARN;
+    else if (cr_level.find("ERROR") != std::string::npos)
+        levelVlog = utils::LOG_LEVEL_ERROR;
+    else if (cr_level.find("FATAL") != std::string::npos)
+        levelVlog = utils::LOG_LEVEL_FATAL;
 
     // Is standard output required in addition to log files，default
     FLAGS_alsologtostderr = true;
@@ -47,10 +63,10 @@ bool utils::Logger::InitializeGlog(const std::string &cr_fileName, LogLevel leve
     // Set number of seconds that can buffer logs. 0 refers to real-time output
     FLAGS_logbufsecs = 0;
     // Log file size in MB
-    FLAGS_max_log_size = 10;
+    FLAGS_max_log_size = capacity;
     FLAGS_stop_logging_if_full_disk = true;
     // keep your logs for n days,disable for google::DisableLogCleaner();
-    google::EnableLogCleaner(7);
+    google::EnableLogCleaner(expir);
     google::InstallFailureSignalHandler();
     // Initialize log instance
     google::InitGoogleLogging(cr_label.c_str(), &CustomerPrefix, nullptr);

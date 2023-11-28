@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.22)
 aux_source_directory(${XBFT_SRC_DIR}/utils/ UTILS_SRC)
 aux_source_directory(${XBFT_SRC_DIR}/crypto/ CRYPTO_SRC)
 aux_source_directory(${XBFT_SRC_DIR}/engine/ ENGINE_SRC)
+aux_source_directory(${XBFT_SRC_DIR}/protos/ PROTO_SRC)
 
 add_library(xbft_static STATIC 
     ${UTILS_SRC}

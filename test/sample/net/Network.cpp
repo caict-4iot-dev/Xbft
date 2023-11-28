@@ -21,19 +21,18 @@
 
 #include "Network.h"
 #include "ConsEngine.h"
+#include "ExitHandler.h"
 #include "Logger.h"
 #include "Strings.h"
-#include <arpa/inet.h>
-#include <netinet/in.h>
+#include "chain.pb.h"
+#include "utils/Strings.h"
 #include <sys/socket.h>
 #include <unistd.h>
 #include <sstream>
-#include "utils/Strings.h"
-#include "ExitHandler.h"
+
 
 namespace net {
-Network::Network()
-    : m_nodeSocket(-1), mp_sendThread(nullptr), mp_recvThread(nullptr) {}
+Network::Network() : m_nodeSocket(-1), mp_sendThread(nullptr), mp_recvThread(nullptr) {}
 
 Network::~Network() {}
 
@@ -60,14 +59,10 @@ bool Network::Initialize() {
 
     mp_recvThread = std::make_shared<std::thread>(&Network::recvMsg, this);
     mp_sendThread = std::make_shared<std::thread>(&Network::sendMsg, this);
+    buildAddressAndIp();
 
-
-    mp_net = std::make_shared<xbft::NetInterface>();
-    if (mp_net == nullptr) {
-        LOG_ERROR("Network build mp_net nullptr");
-        return false;
-    }
-    mp_net->m_sendMsg = net::Send;
+    sendCons = net::SendConsData;
+    sendSync = net::SendSyncData;
 
     LOG_INFO("Network Initialize [OK]...");
     return true;
@@ -78,13 +73,8 @@ bool Network::Exit() {
     // 关闭socket
     close(m_nodeSocket);
 
-    if (mp_recvThread != nullptr) {
-        mp_recvThread->join();
-    }
-
-    if (mp_sendThread != nullptr) {
-        mp_sendThread->join();
-    }
+    mp_recvThread->join();
+    mp_sendThread->join();
 
     LOG_INFO("Network stop [OK]");
     return true;
@@ -92,7 +82,7 @@ bool Network::Exit() {
 
 void Network::SendMsg(
     const std::string &cr_from, const std::vector<std::string> &cr_dest, const std::string &cr_value) {
-    Msg msgEvent;
+    common::Msg msgEvent;
     msgEvent.crValue = std::move(cr_value);
     msgEvent.crDest = std::move(cr_dest);
 
@@ -106,47 +96,57 @@ common::EventQueue<std::string> &Network::GetMsgQueue() {
     return m_recvMsgQueue;
 }
 
+common::EventQueue<common::SyncMsg> &Network::GetSyncMsgQueue() {
+    return m_recvSyncMsgQueue;
+}
+
+void Network::buildAddressAndIp() {
+    m_bootnode.clear();
+    m_bootsock.clear();
+
+    for (auto node : common::NetConfig::ms_bootnode) {
+        auto address = node["address"];
+        auto ipstr = node["consensus_network"];
+        m_bootnode[ipstr] = address;
+
+        common::StringVector ip_array = common::String::Strtok(ipstr, ':');
+        if (ip_array.size() <= 1) {
+            LOG_ERROR("[net] [bootnode] [consensus_network] config error...");
+            continue;
+        }
+
+        sockaddr_in peerAddr;
+        peerAddr.sin_family = AF_INET;
+        peerAddr.sin_port = htons(common::String::ToUint(ip_array[1]));  // 设置对方端口
+        inet_pton(AF_INET, ip_array[0].c_str(), &peerAddr.sin_addr);     // 设置对方IP地址
+
+        m_bootsock[address] = peerAddr;
+    }
+}
+
+std::string Network::sockAddrToStr(const sockaddr_in &cr_addr) {
+    char ip[INET_ADDRSTRLEN];
+    char port[10];
+    inet_ntop(AF_INET, &(cr_addr.sin_addr), ip, INET_ADDRSTRLEN);
+    sprintf(port, "%d", ntohs(cr_addr.sin_port));
+
+    std::string fromStr = std::string(ip) + ":" + std::string(port);
+    return fromStr;
+}
+
 void Network::sendMsg() {
     while (!common::ExitHandler::GetExitFlag()) {
-        Msg msgEvent;
+        common::Msg msgEvent;
         if (!m_sendMsgQueue.TryPop(std::chrono::milliseconds(100), msgEvent)) {
             continue;
         }
 
         // 目的地址转化为ip
-        std::vector<std::string> ipDest;
-        bool found = false;
-        for (auto dest : msgEvent.crDest) {
-            for (auto node : common::NetConfig::ms_bootnode) {
-                if (node["address"] == dest) {
-                    ipDest.push_back(node["consensus_network"]);
-                    found = true;
-                    break;
-                }
-            }
-        }
-
-        if (!found) {
-            LOG_ERROR("[net] [bootnode] [address] config error...");
-        }
-
-        // 设置对方地址
         std::vector<sockaddr_in> sockaddrList;
-        for (size_t i = 0; i < ipDest.size(); i++) {
-            LOG_INFO("send peerAddr:%s", ipDest[i].c_str());
-
-            common::StringVector ip_array = common::String::Strtok(ipDest[i], ':');
-            if (ip_array.size() <= 1) {
-                LOG_ERROR("[net] [bootnode] [consensus_network] config error...");
-                continue;
+        for (auto dest : msgEvent.crDest) {
+            if (m_bootsock.count(dest) != 0) {
+                sockaddrList.push_back(std::move(m_bootsock[dest]));
             }
-
-            sockaddr_in peerAddr;
-            peerAddr.sin_family = AF_INET;
-            peerAddr.sin_port = htons(common::String::ToUint(ip_array[1]));  // 设置对方端口
-            inet_pton(AF_INET, ip_array[0].c_str(), &peerAddr.sin_addr);     // 设置对方IP地址
-
-            sockaddrList.push_back(std::move(peerAddr));
         }
 
         // 发送数据到对方节点
@@ -169,15 +169,46 @@ void Network::recvMsg() {
         if (bytesReceived > -1) {
             std::string recvData = std::string(recvBuf, bytesReceived);
             LOG_INFO("recvMsg size %ld recvData size:%ld", bytesReceived, recvData.size());
-            m_recvMsgQueue.Push(recvData);
+            protocol::Message message;
+            message.ParseFromString(recvBuf);
+            if (message.type() == protocol::MESSAGE_TYPE::MSG_CONSENSUS) {
+                m_recvMsgQueue.Push(utils::String::HexStringToBin(message.data()));
+            } else if (message.type() == protocol::MESSAGE_TYPE::MSG_SYNC) {
+                auto fromStr = sockAddrToStr(fromAddr);
+                if (m_bootnode.count(fromStr) != 0) {
+                    common::SyncMsg msg;
+                    msg.request = message.request();
+                    msg.crValue = utils::String::HexStringToBin(message.data());
+                    msg.crDest = m_bootnode[fromStr];
+                    m_recvSyncMsgQueue.Push(msg);
+                } else {
+                    LOG_ERROR("Network::recvMsg Unknow Sync infomation, fromStr:%s", fromStr.c_str());
+                }
+
+            } else {
+                LOG_INFO("Network recvMsg Invalid message");
+            }
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }
 
-void Send(const std::string &cr_from, const std::vector<std::string> &cr_dest, const std::string &cr_value) {
-    LOG_INFO("Net Send data size %ld", cr_value.size());
-    Network::Instance().SendMsg(cr_from, cr_dest, cr_value);
+void SendConsData(const std::string &cr_from, const std::vector<std::string> &cr_dest, const std::string &cr_value) {
+    LOG_INFO("Net Send cons data size %ld", cr_value.size());
+    protocol::Message message;
+    message.set_type(protocol::MESSAGE_TYPE::MSG_CONSENSUS);
+    message.set_data(utils::String::BinToHexString(cr_value));
+    Network::Instance().SendMsg(cr_from, cr_dest, message.SerializeAsString());
+}
+
+void SendSyncData(
+    const std::string &cr_from, const std::vector<std::string> &cr_dest, const std::string &cr_value, bool request) {
+    LOG_INFO("Net Send sync data size %ld", cr_value.size());
+    protocol::Message message;
+    message.set_type(protocol::MESSAGE_TYPE::MSG_SYNC);
+    message.set_request(request);
+    message.set_data(utils::String::BinToHexString(cr_value));
+    Network::Instance().SendMsg(cr_from, cr_dest, message.SerializeAsString());
 }
 }  // namespace net

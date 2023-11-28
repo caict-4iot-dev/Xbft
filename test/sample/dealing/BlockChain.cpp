@@ -34,15 +34,19 @@
 namespace dealing {
 BlockChain::BlockChain() {
     m_seq = 1;
+    m_lastConsSeq = m_seq;
     m_lastProof = "";
     m_previousHash = "";
     mp_consensusEngine = nullptr;
     m_lastConsensusTime = 0;
+    m_lastSyncTime = 0;
     mp_recvNetData = nullptr;
     mp_keyTool = nullptr;
+    mp_sync = nullptr;
 }
 
-bool BlockChain::Initialize(std::shared_ptr<xbft::NetInterface> p_net, common::EventQueue<std::string> &r_msgQueue) {
+bool BlockChain::Initialize(common::SendMsgFun sendMsg, common::SendMsgTypeFun sendTypeMsg,
+    common::EventQueue<std::string> &r_msgQueue, common::EventQueue<common::SyncMsg> &r_msgSyncQueue) {
     // 构建nodeInfo
     mp_nodeInfo = std::make_shared<NodeInfo>();
     if (mp_nodeInfo == nullptr) {
@@ -76,7 +80,22 @@ bool BlockChain::Initialize(std::shared_ptr<xbft::NetInterface> p_net, common::E
     mp_keyTool->m_publicKeyToAddr = common::PublicKeyToAddress;
     mp_keyTool->m_createConsData = dealing::ParseStringToConsData;
 
-    mp_consensusEngine = xbft::CreateXbftEngine(p_net, valueDeal, mp_nodeInfo, mp_keyTool);
+    auto net = std::make_shared<xbft::NetInterface>();
+    if (net == nullptr) {
+        LOG_ERROR("BlockChain::Initialize net nullptr");
+        return false;
+    }
+    net->m_sendMsg = sendMsg;
+
+    // sync init
+    mp_sync =
+        std::make_shared<Sync>(sendTypeMsg, mp_nodeInfo->GetKeyInfo()->GetAddress(), mp_nodeInfo->GetValidators());
+    if (mp_sync == nullptr) {
+        LOG_ERROR("BlockChain::Initialize mp_sync nullptr");
+        return false;
+    }
+
+    mp_consensusEngine = xbft::CreateXbftEngine(net, valueDeal, mp_nodeInfo, mp_keyTool);
     if (mp_consensusEngine == nullptr) {
         LOG_ERROR("BlockChain::Initialize CreateXbftEngine nullptr");
         return false;
@@ -84,7 +103,13 @@ bool BlockChain::Initialize(std::shared_ptr<xbft::NetInterface> p_net, common::E
 
     mp_recvNetData = std::make_shared<std::thread>(&BlockChain::dealConsensusData, this, std::ref(r_msgQueue));
     if (mp_recvNetData == nullptr) {
-        LOG_ERROR("BlockChain::Initialize thread nullptr");
+        LOG_ERROR("BlockChain::Initialize thread mp_recvNetData nullptr");
+        return false;
+    }
+
+    mp_recvNetSyncData = std::make_shared<std::thread>(&BlockChain::dealSyncData, this, std::ref(r_msgSyncQueue));
+    if (mp_recvNetSyncData == nullptr) {
+        LOG_ERROR("BlockChain::Initialize thread mp_recvNetSyncData nullptr");
         return false;
     }
 
@@ -103,14 +128,36 @@ void BlockChain::dealConsensusData(common::EventQueue<std::string> &r_msgQueue) 
         if (!r_msgQueue.TryPop(std::chrono::milliseconds(100), msg)) {
             continue;
         }
-
+        // 共识消息处理
         xbft::Recv(mp_consensusEngine, msg, mp_keyTool);
+    }
+}
+
+void BlockChain::dealSyncData(common::EventQueue<common::SyncMsg> &r_msgSyncQueue) {
+    while (!common::ExitHandler::GetExitFlag()) {
+        common::SyncMsg msg;
+        if (!r_msgSyncQueue.TryPop(std::chrono::milliseconds(100), msg)) {
+            continue;
+        }
+
+        // 同步请求消息处理
+        if (msg.request) {
+            mp_sync->SendSyncResponse(msg.crDest, m_seq, m_previousHash, m_lastProof, m_lastConsensusTime);
+        } else {  // 同步响应消息
+            int64_t seq = 0;
+            std::string hash = "";
+            std::string proof = "";
+            int64_t close_time = 0;
+            mp_sync->RecvSyncResponse(msg.crValue, seq, hash, proof, close_time);
+            Store(seq, hash, proof, close_time);
+        }
     }
 }
 
 bool BlockChain::Exit() {
     LOG_INFO("BlockChain Exit");
     mp_recvNetData->join();
+    mp_recvNetSyncData->join();
     m_timerLoop.Stop();
     LOG_INFO("BlockChain Exit OK");
     return true;
@@ -135,7 +182,23 @@ void BlockChain::Store(std::shared_ptr<xbft::ConsData> p_consensus, const std::s
     m_lastProof = cr_proof;
 
     m_lastConsensusTime = consensusValue->GetCloseTime();
-    LOG_INFO("Store seq:%ld, previousHash:%s", m_seq, utils::String::BinToHexString(m_previousHash).c_str());
+    LOG_INFO("Store seq:%ld, previousHash:%s m_lastConsensusTime:%ld", m_seq,
+        utils::String::BinToHexString(m_previousHash).c_str(), m_lastConsensusTime);
+}
+
+void BlockChain::Store(int64_t seq, const std::string &cr_hash, const std::string &cr_proof, int64_t closeTime) {
+    if (seq > m_seq) {
+        int64_t oldSeq = m_seq;
+        m_seq = seq;
+        m_previousHash = cr_hash;
+        m_lastProof = cr_proof;
+        m_lastConsensusTime = closeTime;
+
+        std::vector<std::string> validators;
+        auto ret = xbft::UpdateValidatorsAndProof(mp_consensusEngine, validators, m_lastProof);
+        LOG_INFO("BlockChain Store update before seq:%ld, after seq:%ld, ret:%d view-number:%ld", oldSeq, seq, ret,
+            xbft::GetViewNumber(mp_consensusEngine));
+    }
 }
 
 void BlockChain::ViewChange() {
@@ -144,6 +207,10 @@ void BlockChain::ViewChange() {
 }
 
 bool BlockChain::startConsensus() {
+    if (m_lastConsSeq == m_seq + 1) {
+        return true;
+    }
+
     // is viewActive
     if (!xbft::IsViewActive(mp_consensusEngine)) {
         return true;
@@ -164,13 +231,15 @@ bool BlockChain::startConsensus() {
     }
 
     m_lastConsensusTime = utils::Timestamp::HighResolution();
-    LOG_INFO("BlockChain::startConsensus current:%ld", m_seq);
+    LOG_INFO("BlockChain::startConsensus current:%ld m_lastConsensusTime:%ld", m_seq, m_lastConsensusTime);
 
     consValue->SetCloseTime(m_lastConsensusTime);
     consValue->SetSeq(m_seq + 1);
     consValue->SeqPreviousProof(m_lastProof);
     consValue->SetPreviousHash(m_previousHash);
     consValue->SetValue("test value");
+
+    m_lastConsSeq = m_seq + 1;
 
     consValue->SetProtobufData();
 
@@ -180,11 +249,18 @@ bool BlockChain::startConsensus() {
 
 void BlockChain::onTimeout() {
     // 检测是否发起打包 BlockInterVal间隔
-    if (utils::Timestamp::HighResolution() - m_lastConsensusTime > mp_nodeInfo->GetBlockInterVal()) {
+    auto current = utils::Timestamp::HighResolution();
+    // 10s触发一一次数据同步请求
+    if (current - m_lastSyncTime > 2 * mp_nodeInfo->GetBlockInterVal()) {
+        LOG_INFO("BlockChain sync trigger");
+        mp_sync->SendSyncRequest();
+        m_lastSyncTime = current;
+    }
+    if (current - m_lastConsensusTime > mp_nodeInfo->GetBlockInterVal()) {
         startConsensus();
     }
     // 检测是否超过配置的出块时间 5 * BlockInterVal
-    if (utils::Timestamp::HighResolution() - m_lastConsensusTime > 5 * mp_nodeInfo->GetBlockInterVal()) {
+    if (current - m_lastConsensusTime > 5 * mp_nodeInfo->GetBlockInterVal()) {
         // 发起view-change
         if (xbft::IsViewActive(mp_consensusEngine)) {
             LOG_INFO("BlockChain view-change trigger");

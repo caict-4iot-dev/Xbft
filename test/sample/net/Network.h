@@ -22,28 +22,22 @@
 #ifndef NET_NETWORK_H_
 #define NET_NETWORK_H_
 
+#include "Common.h"
 #include "Configure.h"
 #include "EventQueue.h"
 #include "Singleton.h"
+#include <arpa/inet.h>
+#include <netinet/in.h>
 #include <iostream>
 #include <map>
 #include <string>
 #include <thread>
 
 
-namespace xbft {
-struct NetInterface;
-}
-
 namespace net {
-
 class Network : public common::Singleton<net::Network> {
     friend class common::Singleton<net::Network>;
 
-	struct Msg{
-		std::string crValue;
-		std::vector<std::string> crDest;
-	};
 public:
     Network();
     ~Network();
@@ -53,27 +47,39 @@ public:
 
     void SendMsg(const std::string &cr_from, const std::vector<std::string> &cr_dest, const std::string &cr_value);
     common::EventQueue<std::string> &GetMsgQueue();
+    common::EventQueue<common::SyncMsg> &GetSyncMsgQueue();
 
-    std::shared_ptr<xbft::NetInterface> mp_net;
+    void SendConsData(const std::string &cr_from, const std::vector<std::string> &cr_dest, const std::string &cr_value);
+
+public:
+    common::SendMsgFun sendCons;
+    common::SendMsgTypeFun sendSync;
 
 private:
+    void buildAddressAndIp();
+    std::string sockAddrToStr(const sockaddr_in &cr_addr);
     void sendMsg();
     void recvMsg();
 
 private:
     int m_nodeSocket;
 
-    std::map<std::string, std::string> m_bootnode;
+    std::map<std::string, std::string> m_bootnode;  // ip & address
+    std::map<std::string, sockaddr_in> m_bootsock;  // address & sockaddr_in
 
-    common::EventQueue<Msg> m_sendMsgQueue;
+    common::EventQueue<common::Msg> m_sendMsgQueue;
     common::EventQueue<std::string> m_recvMsgQueue;
+    common::EventQueue<common::SyncMsg> m_recvSyncMsgQueue;
 
     std::shared_ptr<std::thread> mp_sendThread;
     std::shared_ptr<std::thread> mp_recvThread;
 
+    bool m_isExit;
 };
 
-void Send(const std::string &cr_from, const std::vector<std::string> &cr_dest, const std::string &cr_value);
+void SendConsData(const std::string &cr_from, const std::vector<std::string> &cr_dest, const std::string &cr_value);
+void SendSyncData(
+    const std::string &cr_from, const std::vector<std::string> &cr_dest, const std::string &cr_value, bool request);
 
 }  // namespace net
 

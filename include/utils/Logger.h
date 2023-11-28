@@ -30,6 +30,7 @@
 #include <iomanip>
 #include <iostream>
 #include <vector>
+#include <filesystem>
 
 
 #define FILENAME(x) strrchr(x, '/') ? strrchr(x, '/') + 1 : x
@@ -100,7 +101,8 @@ public:
     Logger(Logger &&) = delete;                   // move constructor
     Logger &operator=(const Logger &a) = delete;  // Copy assignment function
     Logger &operator=(Logger &&) = delete;        // Move assignment function
-    static bool InitializeGlog(const std::string &cr_fileName, LogLevel level, const std::string &cr_label);
+    static bool InitializeGlog(const std::string &cr_fileName, int64_t expir, int64_t capacity,
+        const std::string &cr_level, const std::string &cr_label);
     static bool Exit();
     static void CustomerPrefix(std::ostream &r_os, const google::LogMessageInfo &cr_logMessageInfo, void *);
     static int LogGlogVm(const char *cp_file, const int c_lineNum, LogLevel log_Level, const char *cp_fmt, ...);

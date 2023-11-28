@@ -2,7 +2,7 @@ syntax = "proto3";
 package protocol;
 
 enum MESSAGE_TYPE{
-	OVERLAY_MSGTYPE_NONE = 0;
+	MSGTYPE_NONE = 0;
 	MSG_CONSENSUS  = 1;
 	MSG_SYNC = 2;
 }
@@ -19,4 +19,11 @@ message ConsensusValue {
     bytes previous_hash = 3;
     bytes previous_proof = 4;
     bytes value = 5;
+}
+
+message SyncValue {
+	int64 ledger_seq = 1;
+    bytes previous_hash = 2;
+    bytes previous_proof = 3;
+    int64 close_time = 4;
 }

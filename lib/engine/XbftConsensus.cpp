@@ -25,6 +25,7 @@
 #include "Sha256.h"
 #include "Strings.h"
 #include "Timestamp.h"
+#include "utils/Strings.h"
 
 namespace xbft {
 XbftConsensus::XbftConsensus(std::shared_ptr<NetInterface> p_net, std::shared_ptr<ValueDealInterface> p_valueDeal,
@@ -131,12 +132,13 @@ bool XbftConsensus::UpdateProof(const std::string &cr_lastProof) {
             LOG_ERROR("Qc doesn't have content");
             break;
         }
-        if (xbftQc.qc_content().view_number() > m_viewNumber) {
+        if (xbftQc.qc_content().view_number() >= m_viewNumber) {
             newViewNumber = xbftQc.qc_content().view_number();
         }
         if (xbftQc.qc_content().sequence() > m_lastSequence) {
             newSeq = xbftQc.qc_content().sequence();
         }
+        LOG_INFO("XbftConsensus::UpdateProof newViewNumber:%ld newSeq:%ld", newViewNumber, newSeq);
 
         // 如果QC节点的seq超出最新的树节点seq，则创建新节点追加到树中。以新节点为基础继续共识。
         if (newSeq > -1) {
