@@ -37,7 +37,7 @@ void utils::Logger::CustomerPrefix(std::ostream &r_os, const google::LogMessageI
          << std::setfill(' ') << std::setw(2) << cr_logMessageInfo.thread_id << std::setfill('0');
 }
 
-bool utils::Logger::InitializeGlog(const std::string &cr_fileName, int64_t expir, int64_t capacity,
+bool utils::Logger::InitializeGlog(const std::filesystem::path &cr_fileName, int64_t expir, int64_t capacity,
     const std::string &cr_level, const std::string &cr_label) {
     int levelVlog = utils::LOG_LEVEL_TRACE;
 
@@ -74,7 +74,7 @@ bool utils::Logger::InitializeGlog(const std::string &cr_fileName, int64_t expir
     FLAGS_v = levelVlog;
     utils::Logger::ms_logLevel = levelVlog;
     // Set log file path handle of vlog
-    auto logPath = std::filesystem::path(cr_fileName).parent_path();
+    auto logPath = cr_fileName.parent_path();
     if (!std::filesystem::exists(logPath)) {
         std::filesystem::create_directory(logPath);
     }
@@ -87,6 +87,7 @@ bool utils::Logger::InitializeGlog(const std::string &cr_fileName, int64_t expir
 
     return true;
 }
+
 bool utils::Logger::Exit() {
     google::ShutdownGoogleLogging();
     return true;

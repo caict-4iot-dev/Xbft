@@ -30,6 +30,7 @@
 #include "Singleton.h"
 #include "utils/Strings.h"
 #include <atomic>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -70,6 +71,7 @@ int main(int argc, char *argv[]) {
     if (!common::Configure::LoadConfig(filename)) {
         return -1;
     }
+
     if (!utils::Logger::InitializeGlog(common::LogConfig::ms_path, common::LogConfig::ms_expireDays,
             common::LogConfig::ms_sizeCapacity, common::LogConfig::ms_level, "Xbft-sample")) {
         return -1;
