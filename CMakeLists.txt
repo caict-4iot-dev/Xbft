@@ -65,6 +65,17 @@ IF(CODE_COVER)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
 ENDIF()
 
+if(NOT LIBRARY_OUTPUT_PATH)
+    set(LIBRARY_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR}/lib)
+endif()
+
+if(NOT BUILD_SHARED_LIBS)
+    option (BUILD_SHARED_LIBS "Build shared libraries" ON)
+endif()
+if (NOT BUILD_STATIC_LIBS)
+    option (BUILD_STATIC_LIBS "Build static libraries" ON)
+endif()
+
 if(NOT DEFINED SANITIZER)
     option(SANITIZER "option for sannitizer tool" OFF)
 endif()
