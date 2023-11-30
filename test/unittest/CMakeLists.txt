@@ -18,4 +18,11 @@ target_include_directories(${APP_UNITTEST} PUBLIC ${XBFT_INCLUDE_DIR} ${XBFT_SRC
 target_link_libraries(${APP_UNITTEST} ${INNER_LIBS} ${XBFT_DEPENDS_LIBS} ${XBFT_DEPEND_LIB})
 add_dependencies(${APP_UNITTEST} generate_proto)
 
+if(BUILD_UNIT_TESTS_OPT)
+    install(TARGETS ${APP_UNITTEST}
+    RUNTIME DESTINATION ${INSTALL_UNITTEST_PATH}
+    )
+endif()
+
+
 #disable_clang_tidy(${APP_UNITTEST})

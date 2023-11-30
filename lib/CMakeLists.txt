@@ -47,16 +47,28 @@ endforeach()
 
 if(BUILD_STATIC_LIBS)
     install(TARGETS xbft_static
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
+        ARCHIVE DESTINATION ${INSTALL_LIB_PATH}
     )
 endif()
 
 if(BUILD_SHARED_LIBS)
     install(TARGETS xbft
-        LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
+        LIBRARY DESTINATION ${INSTALL_LIB_PATH}
     )
 endif()
 
-set(CONSENGINE_H ${XBFT_ROOT_INCLUDE_DIR}/ConsEngine.h)
-set(XBFT_H ${XBFT_ROOT_INCLUDE_DIR}/Xbft.h)
-install(FILES ${CONSENGINE_H} ${XBFT_H} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/xbft)
+file(GLOB children ${XBFT_ROOT_INCLUDE_DIR}/*)
+foreach(child ${children})
+    if(IS_DIRECTORY ${child})
+        install(
+            DIRECTORY ${child}
+            DESTINATION ${INSTALL_INCLUDE_PATH}
+        )
+    else()
+        install(
+            FILES ${child}
+            DESTINATION ${INSTALL_INCLUDE_PATH}
+        )
+    endif()
+endforeach()
+

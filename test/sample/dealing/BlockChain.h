@@ -82,8 +82,6 @@ private:
 
 void ValueCommited(std::shared_ptr<xbft::ConsData> p_consData, const std::string &cr_proof);
 
-void SendMsg(const std::string &cr_from, const std::vector<std::string> &cr_dest, const std::string &cr_value);
-
 void ViewChange();
 
 }  // namespace dealing

@@ -39,6 +39,9 @@ public:
     ~XbftEngine();
 
 public:
+    const static char *ms_engineName;
+    const static char *ms_engineVersion;
+    
     std::string GetEngineName();
     std::string GetEngineVersion();
     bool StartEngine(std::shared_ptr<NodeInfoInterface> p_nodeInfo);

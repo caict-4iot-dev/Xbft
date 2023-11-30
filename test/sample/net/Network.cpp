@@ -70,11 +70,12 @@ bool Network::Initialize() {
 
 bool Network::Exit() {
     LOG_INFO("Network::Exit");
-    // 关闭socket
-    close(m_nodeSocket);
-
+    
     mp_recvThread->join();
     mp_sendThread->join();
+
+    // 关闭socket
+    close(m_nodeSocket);
 
     LOG_INFO("Network stop [OK]");
     return true;
@@ -109,7 +110,7 @@ void Network::buildAddressAndIp() {
         auto ipstr = node["consensus_network"];
         m_bootnode[ipstr] = address;
 
-        common::StringVector ip_array = common::String::Strtok(ipstr, ':');
+        utils::StringVector ip_array = utils::String::Strtok(ipstr, ':');
         if (ip_array.size() <= 1) {
             LOG_ERROR("[net] [bootnode] [consensus_network] config error...");
             continue;
@@ -117,7 +118,7 @@ void Network::buildAddressAndIp() {
 
         sockaddr_in peerAddr;
         peerAddr.sin_family = AF_INET;
-        peerAddr.sin_port = htons(common::String::ToUint(ip_array[1]));  // 设置对方端口
+        peerAddr.sin_port = htons(utils::String::ToUint(ip_array[1]));  // 设置对方端口
         inet_pton(AF_INET, ip_array[0].c_str(), &peerAddr.sin_addr);     // 设置对方IP地址
 
         m_bootsock[address] = peerAddr;
@@ -137,7 +138,7 @@ std::string Network::sockAddrToStr(const sockaddr_in &cr_addr) {
 void Network::sendMsg() {
     while (!common::ExitHandler::GetExitFlag()) {
         common::Msg msgEvent;
-        if (!m_sendMsgQueue.TryPop(std::chrono::milliseconds(100), msgEvent)) {
+        if (!m_sendMsgQueue.TryPop(std::chrono::milliseconds(common::QUEUE_LOOP_TIME), msgEvent)) {
             continue;
         }
 
@@ -162,13 +163,12 @@ void Network::recvMsg() {
     while (!common::ExitHandler::GetExitFlag()) {
         sockaddr_in fromAddr;
         socklen_t fromAddrLen = sizeof(fromAddr);
-        char recvBuf[50 * 1024] = {0};
-        memset(recvBuf, 0, 50 * 1024);
+        char recvBuf[common::NET_RECV_BUFF_SIZE] = {0};
+        memset(recvBuf, 0, common::NET_RECV_BUFF_SIZE);
         int bytesReceived =
-            recvfrom(m_nodeSocket, recvBuf, 50 * 1024, MSG_DONTWAIT, (sockaddr *)&fromAddr, &fromAddrLen);
+            recvfrom(m_nodeSocket, recvBuf, common::NET_RECV_BUFF_SIZE, MSG_DONTWAIT, (sockaddr *)&fromAddr, &fromAddrLen);
         if (bytesReceived > -1) {
-            std::string recvData = std::string(recvBuf, bytesReceived);
-            LOG_INFO("recvMsg size %ld recvData size:%ld", bytesReceived, recvData.size());
+            LOG_INFO("recvMsg size %ld", bytesReceived);
             protocol::Message message;
             message.ParseFromString(recvBuf);
             if (message.type() == protocol::MESSAGE_TYPE::MSG_CONSENSUS) {
@@ -190,7 +190,7 @@ void Network::recvMsg() {
             }
         }
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(common::QUEUE_LOOP_TIME));
     }
 }
 

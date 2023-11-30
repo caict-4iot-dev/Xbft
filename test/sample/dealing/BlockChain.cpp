@@ -32,6 +32,9 @@
 #include "utils/Strings.h"
 
 namespace dealing {
+
+const int g_delayStartTime = 3000;
+
 BlockChain::BlockChain() {
     m_seq = 1;
     m_lastConsSeq = m_seq;
@@ -114,10 +117,10 @@ bool BlockChain::Initialize(common::SendMsgFun sendMsg, common::SendMsgTypeFun s
     }
 
     // 延迟3s启动
-    std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(g_delayStartTime));
 
     // 启动定时器 打包判断 及 view-change判断
-    m_timerLoop.SetTimeOut(1000, [this]() { onTimeout(); });
+    m_timerLoop.SetTimeOut(common::TIMER_LOOP_TIME, [this]() { onTimeout(); });
 
     return true;
 }
@@ -125,7 +128,7 @@ bool BlockChain::Initialize(common::SendMsgFun sendMsg, common::SendMsgTypeFun s
 void BlockChain::dealConsensusData(common::EventQueue<std::string> &r_msgQueue) {
     while (!common::ExitHandler::GetExitFlag()) {
         std::string msg = "";
-        if (!r_msgQueue.TryPop(std::chrono::milliseconds(100), msg)) {
+        if (!r_msgQueue.TryPop(std::chrono::milliseconds(common::QUEUE_LOOP_TIME), msg)) {
             continue;
         }
         // 共识消息处理
@@ -136,7 +139,7 @@ void BlockChain::dealConsensusData(common::EventQueue<std::string> &r_msgQueue) 
 void BlockChain::dealSyncData(common::EventQueue<common::SyncMsg> &r_msgSyncQueue) {
     while (!common::ExitHandler::GetExitFlag()) {
         common::SyncMsg msg;
-        if (!r_msgSyncQueue.TryPop(std::chrono::milliseconds(100), msg)) {
+        if (!r_msgSyncQueue.TryPop(std::chrono::milliseconds(common::QUEUE_LOOP_TIME), msg)) {
             continue;
         }
 

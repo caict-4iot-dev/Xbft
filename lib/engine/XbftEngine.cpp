@@ -26,6 +26,9 @@
 
 namespace xbft {
 
+const char *XbftEngine::ms_engineName = "Xbft Engine";
+const char *XbftEngine::ms_engineVersion = "1.0.0";
+
 XbftEngine::XbftEngine(std::shared_ptr<NetInterface> p_net, std::shared_ptr<ValueDealInterface> p_valueDeal,
     std::shared_ptr<KeyToolInterface> p_keyTool) {
     mp_consensus = std::make_shared<XbftConsensus>(p_net, p_valueDeal, p_keyTool);
@@ -38,11 +41,11 @@ XbftEngine::~XbftEngine() {
 }
 
 std::string XbftEngine::GetEngineName() {
-    return "Xbft Engine";
+    return ms_engineName;
 }
 
 std::string XbftEngine::GetEngineVersion() {
-    return "1.0.0";
+    return ms_engineVersion;
 }
 
 bool XbftEngine::StartEngine(std::shared_ptr<NodeInfoInterface> p_nodeInfo) {

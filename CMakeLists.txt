@@ -139,6 +139,11 @@ set(XBFT_INCLUDE_DIR
     ${XBFT_ROOT_DIR}/include/utils
 )
 
+set(INSTALL_LIB_PATH ${CMAKE_INSTALL_PREFIX}/lib)
+set(INSTALL_INCLUDE_PATH ${CMAKE_INSTALL_PREFIX}/include/xbft)
+set(INSTALL_SAMPLE_PATH ${CMAKE_INSTALL_PREFIX}/test/sample)
+set(INSTALL_UNITTEST_PATH ${CMAKE_INSTALL_PREFIX}/test/unittest)
+
 link_directories(
     ${XBFT_3RD_LIB}/lib64
     ${XBFT_3RD_LIB}/lib

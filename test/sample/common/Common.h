@@ -28,6 +28,10 @@
 
 namespace common {
 
+const int QUEUE_LOOP_TIME = 100;
+const int TIMER_LOOP_TIME = 1000;
+const int NET_RECV_BUFF_SIZE = 50*1024;
+
 typedef void (*SendMsgFun)(
     const std::string &cr_from, const std::vector<std::string> &cr_dest, const std::string &cr_value);
 

@@ -1,0 +1,30 @@
+node:
+  private_key: '1031a1213f8ef7517323b7148f4ebf5868e1ffec8f7378ebba29e0150df4ae80'
+  interval: 3
+consensus:
+  validators: 
+    - '562052b1556b50ef69c3599982eab4b0b598dff4'
+    - 'da13d50517e11154f0f078abfa4a36d3c57ef694'
+    - '3dfae1b75b6cd50601667222c5380ba45c629cf4'
+    - '26444cb06f702a345c8c701b520da7f7ef578164'
+  interval: 5
+net:
+  port: 54002
+  bootnode:
+    - 
+      consensus_network: '127.0.0.1:54002'
+      address: '562052b1556b50ef69c3599982eab4b0b598dff4'
+    - 
+      consensus_network: '127.0.0.1:54003'
+      address: 'da13d50517e11154f0f078abfa4a36d3c57ef694'
+    - 
+      consensus_network: '127.0.0.1:54004'
+      address: '3dfae1b75b6cd50601667222c5380ba45c629cf4'
+    - 
+      consensus_network: '127.0.0.1:54005'
+      address: '26444cb06f702a345c8c701b520da7f7ef578164'
+logger:
+  expire_days: 10
+  level: DEBUG|WARNING|ERROR|FATAL
+  size_capacity: 10
+  path: "./log/xbft.log"

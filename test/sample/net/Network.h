@@ -49,8 +49,6 @@ public:
     common::EventQueue<std::string> &GetMsgQueue();
     common::EventQueue<common::SyncMsg> &GetSyncMsgQueue();
 
-    void SendConsData(const std::string &cr_from, const std::vector<std::string> &cr_dest, const std::string &cr_value);
-
 public:
     common::SendMsgFun sendCons;
     common::SendMsgTypeFun sendSync;
@@ -74,7 +72,6 @@ private:
     std::shared_ptr<std::thread> mp_sendThread;
     std::shared_ptr<std::thread> mp_recvThread;
 
-    bool m_isExit;
 };
 
 void SendConsData(const std::string &cr_from, const std::vector<std::string> &cr_dest, const std::string &cr_value);
