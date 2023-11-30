@@ -12,7 +12,7 @@ project(xbft)
 set(PROJECT_VERSION 1.0.0)
 
 if(NOT DEFINED COMPILE_3RD)
-    option(COMPILE_3RD "Compile 3rd" OFF)
+    option(COMPILE_3RD "Compile 3rd" ON)
 endif()
 
 message(STATUS "COMPILE_3RD=" ${COMPILE_3RD})
@@ -24,7 +24,7 @@ if(COMPILE_3RD)
     endif()
 endif()
 
-set(XBFT_3RD_LIB ${CMAKE_CURRENT_SOURCE_DIR}/xbft-3rd)
+set(XBFT_3RD_LIB /home/xbft-3rd)
 
 set(XBFT_DEPEND_LIB "-lpthread -ldl -lz -lstdc++fs")
 

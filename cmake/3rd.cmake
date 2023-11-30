@@ -10,6 +10,24 @@ if(NOT EXISTS ${XBFT_3RD_LIB})
     message(STATUS "mkdir ${XBFT_3RD_LIB}...")
 endif()
 
+#check yaml-cpp
+set(YAML_SRC_DIR ${XBFT_3RD_SRC_DIR}/yaml-cpp)
+if(NOT EXISTS ${YAML_SRC_DIR})
+    message(FATAL_ERROR "${YAML_SRC_DIR} not exist.")
+endif()
+message(STATUS "compile libyaml-cpp.a...")
+execute_process(COMMAND ${CMAKE_COMMAND} -B ${YAML_SRC_DIR}/build
+                -DCMAKE_INSTALL_PREFIX=${XBFT_3RD_LIB} -DYAML_CPP_BUILD_TESTS=OFF
+                WORKING_DIRECTORY "${YAML_SRC_DIR}"
+                OUTPUT_QUIET
+                COMMAND_ERROR_IS_FATAL ANY
+)
+execute_process(COMMAND ${CMAKE_COMMAND} --build ${YAML_SRC_DIR}/build -j8 --target install
+                WORKING_DIRECTORY "${YAML_SRC_DIR}"
+                OUTPUT_QUIET
+                COMMAND_ERROR_IS_FATAL ANY
+)
+
 #check gtest
 set(GTEST_SRC_DIR ${XBFT_3RD_SRC_DIR}/googletest)
 if(NOT EXISTS ${GTEST_SRC_DIR})
