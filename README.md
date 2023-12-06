@@ -12,7 +12,7 @@
 ​   3) 不再有空块 Dummy block的概念
 ​	4) 节点广播并收集new-view消息，所有节点共同判断2f+1个new-view后进行视图切换
 
-![image-20231206110251050](./docs/image/image-20231206110251050.png)
+![项目模块结构](./docs/image/xbft-项目模块结构.jpg)
 
 ## 编译安装
 
