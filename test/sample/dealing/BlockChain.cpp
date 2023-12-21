@@ -263,7 +263,7 @@ void BlockChain::onTimeout() {
         startConsensus();
     }
     // 检测是否超过配置的出块时间 5 * BlockInterVal
-    if (current - m_lastConsensusTime > 5 * mp_nodeInfo->GetBlockInterVal()) {
+    if ((current - m_lastConsensusTime > 5 * mp_nodeInfo->GetBlockInterVal()) && (m_lastConsensusTime != 0)) {
         // 发起view-change
         if (xbft::IsViewActive(mp_consensusEngine)) {
             LOG_INFO("BlockChain view-change trigger");
