@@ -10,13 +10,13 @@
 
 ​	1) 当创世节点数小于4时，节点无法成功启动；
 
-​   2) 当链上共识节点数量动态减少时，导致链上节点数小于4的交易，执行失败。
+​    2) 当链上共识节点数量动态减少时，导致链上节点数小于4的交易，执行失败。
 
    Xbft在实现过程中，对活性(liveness)规则与安全性(safetyRules)规则解耦。在与区块链网络适配过程中，发现当每次都切换leader，下一个被切换的leader可能还没有获取到最新的状态，从而引起下一个共识不能成功，导致共识的稳定性存在问题。因此，当前版本根据实际情况在hotstuff流水线共识算法的基础上进行了如下方面的改进：
 
 ​	1) leader节点不在每次投票后主动切换，leader节点的提案数据在接收到其它节点的投票数据后，即可马上进行下一个提案的生成。 
 
-​   2) new-view仅由超时进行触发，节点在规定时间内未收到新提案生成消息，则发起视图切换请求，并广播到其它节点。节点收集new-view消息，所有节点共同判断2f+1个new-view后更新view-number，完成leader节点切换。
+​    2) new-view仅由超时进行触发，节点在规定时间内未收到新提案生成消息，则发起视图切换请求，并广播到其它节点。节点收集new-view消息，所有节点共同判断2f+1个new-view后更新view-number，完成leader节点切换。
 
 #### 项目目的
 
@@ -487,7 +487,7 @@ private:
 
 4)   共识模块主节点接收网络模块中的vote消息，等待并收集2f+1条vote消息后，进行下一步操作；**(主节点prepareQC形成，检查2-chain;3-chain的状态)**
 
-​	a)    主节点构建QC证书，更新共识节点树状态，将上+1轮共识数据通过调用回调OnValueCommited进行preCommit；上+2轮的数据	更新为commited；上+3轮以前的数据更新为decide; 
+​	a)    主节点构建QC证书，更新共识节点树状态，将上+1轮共识数据通过调用回调OnValueCommited进行preCommit；上+2轮的数据更新为commited；上+3轮以前的数据更新为decide; 
 
 ​	b)   构建decide消息，并发送到网络模块进行广播；
 
@@ -500,9 +500,9 @@ private:
 ```
 关于update的理解：
 一个区块中的QC是对其直接父区块的确认，那么我们称之为1-chain；每当一个新的区块形成，节点都会检查是否会形成1-chain，2-chian，3-chain.
-	1-chain: 有新的prepareQC形成，更新本地的prepareQC
-	2-chain: 有新的precommitQC形成，更新本地的lockedQC
-	3-chian: 有新的commitQC形成，有新的区块分支进入commit状态，执行确认的区块分支
+(1) 1-chain: 有新的prepareQC形成，更新本地的prepareQC
+(2) 2-chain: 有新的precommitQC形成，更新本地的lockedQC
+(3) 3-chian: 有新的commitQC形成，有新的区块分支进入commit状态，执行确认的区块分支
 ```
 
 #### 视图切换流程
